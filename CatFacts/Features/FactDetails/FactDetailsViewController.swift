@@ -2,7 +2,12 @@ import UIKit
 
 final class FactDetailsViewController: UIViewController {
     private let viewModel: FactDetailsViewModel
-    private let contentView = FactDetailsView()
+
+    private lazy var contentView: FactDetailsView = {
+        let view = FactDetailsView()
+        view.configure(title: viewModel.title, text: viewModel.text, isVerified: viewModel.isVerified)
+        return view
+    }()
 
     init(viewModel: FactDetailsViewModel) {
         self.viewModel = viewModel
@@ -21,6 +26,5 @@ final class FactDetailsViewController: UIViewController {
         super.viewDidLoad()
         title = "Fact Details"
         navigationItem.largeTitleDisplayMode = .never
-        contentView.configure(title: viewModel.title, text: viewModel.text)
     }
 }

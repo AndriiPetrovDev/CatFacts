@@ -6,9 +6,26 @@ final class FactsListViewController: UIViewController {
     }
 
     private let viewModel: FactsListViewModel
-    private let contentView = FactsListView()
-    private var dataSource: UICollectionViewDiffableDataSource<Section, CatFact.ID>?
     private var loadTask: Task<Void, Never>?
+
+    private lazy var contentView: FactsListView = {
+        let view = FactsListView()
+        view.collectionView.delegate = self
+        view.retryButton.addTarget(self, action: #selector(loadFacts), for: .touchUpInside)
+        return view
+    }()
+
+    private lazy var dataSource: UICollectionViewDiffableDataSource<Section, CatFact.ID> = {
+        let registration = UICollectionView.CellRegistration<FactCell, CatFact> { cell, _, fact in
+            cell.configure(text: fact.text, isVerified: fact.isVerified)
+        }
+
+        let viewModel = viewModel
+        return UICollectionViewDiffableDataSource<Section, CatFact.ID>(collectionView: contentView.collectionView) { collectionView, indexPath, id in
+            guard let fact = viewModel.fact(withID: id) else { return nil }
+            return collectionView.dequeueConfiguredReusableCell(using: registration, for: indexPath, item: fact)
+        }
+    }()
 
     init(viewModel: FactsListViewModel) {
         self.viewModel = viewModel
@@ -31,27 +48,12 @@ final class FactsListViewController: UIViewController {
         super.viewDidLoad()
         title = "Cat Facts"
         navigationItem.largeTitleDisplayMode = .always
-        contentView.collectionView.delegate = self
-        configureDataSource()
 
-        contentView.retryButton.addTarget(self, action: #selector(loadFacts), for: .touchUpInside)
         viewModel.onStateChange = { [weak self] state in
             self?.render(state)
         }
         render(viewModel.state)
         loadFacts()
-    }
-
-    private func configureDataSource() {
-        let registration = UICollectionView.CellRegistration<FactCell, CatFact> { cell, _, fact in
-            cell.configure(text: fact.text)
-        }
-
-        let viewModel = viewModel
-        dataSource = UICollectionViewDiffableDataSource<Section, CatFact.ID>(collectionView: contentView.collectionView) { collectionView, indexPath, id in
-            guard let fact = viewModel.fact(withID: id) else { return nil }
-            return collectionView.dequeueConfiguredReusableCell(using: registration, for: indexPath, item: fact)
-        }
     }
 
     @objc private func loadFacts() {
@@ -81,7 +83,6 @@ final class FactsListViewController: UIViewController {
     }
 
     private func applySnapshot() {
-        guard let dataSource else { return }
         let existingIDs = Set(dataSource.snapshot().itemIdentifiers)
         var snapshot = NSDiffableDataSourceSnapshot<Section, CatFact.ID>()
         snapshot.appendSections([.main])
@@ -94,7 +95,7 @@ final class FactsListViewController: UIViewController {
 extension FactsListViewController: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         collectionView.deselectItem(at: indexPath, animated: true)
-        guard let id = dataSource?.itemIdentifier(for: indexPath) else { return }
+        guard let id = dataSource.itemIdentifier(for: indexPath) else { return }
         viewModel.selectFact(withID: id)
     }
 }

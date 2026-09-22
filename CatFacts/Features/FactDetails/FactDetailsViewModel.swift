@@ -6,6 +6,7 @@ final class FactDetailsViewModel {
     let fact: CatFact
 
     var text: String { fact.text }
+    var isVerified: Bool { fact.isVerified }
 
     init(fact: CatFact) {
         self.fact = fact

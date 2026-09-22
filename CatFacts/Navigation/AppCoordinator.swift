@@ -15,7 +15,6 @@ final class AppCoordinator: Coordinator {
             self?.showFactDetails(fact: fact)
         }
 
-        navigationController.navigationBar.prefersLargeTitles = true
         navigationController.setViewControllers([viewController], animated: false)
     }
 
