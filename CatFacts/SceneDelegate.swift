@@ -12,11 +12,16 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     private let dependencies = AppDependencies.live()
     private var coordinator: AppCoordinator?
 
+    private lazy var navigationController: UINavigationController = {
+        let controller = UINavigationController()
+        controller.navigationBar.prefersLargeTitles = true
+        return controller
+    }()
+
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
         guard let windowScene = scene as? UIWindowScene else { return }
 
         let window = UIWindow(windowScene: windowScene)
-        let navigationController = UINavigationController()
         let screenFactory = ScreenFactory(dependencies: dependencies)
         let coordinator = AppCoordinator(navigationController: navigationController, screenFactory: screenFactory)
 

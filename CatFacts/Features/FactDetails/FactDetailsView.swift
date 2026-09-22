@@ -2,29 +2,72 @@ import UIKit
 import SnapKit
 
 final class FactDetailsView: UIView {
-    private let scrollView = UIScrollView()
-    private let contentView = UIView()
-    private let titleLabel = UILabel()
-    private let textLabel = UILabel()
+    private lazy var scrollView = UIScrollView()
+    private lazy var contentView = UIView()
+
+    private lazy var titleLabel: UILabel = {
+        let label = UILabel()
+        label.font = .preferredFont(forTextStyle: .title2)
+        label.adjustsFontForContentSizeCategory = true
+        label.numberOfLines = 0
+        label.accessibilityTraits = .header
+        return label
+    }()
+
+    private lazy var textLabel: UILabel = {
+        let label = UILabel()
+        label.font = .preferredFont(forTextStyle: .body)
+        label.adjustsFontForContentSizeCategory = true
+        label.numberOfLines = 0
+        label.textColor = .label
+        return label
+    }()
+
+    private lazy var verifiedImageView: UIImageView = {
+        let imageView = UIImageView(image: UIImage(systemName: "checkmark.square.fill"))
+        imageView.preferredSymbolConfiguration = UIImage.SymbolConfiguration(textStyle: .caption1)
+        imageView.adjustsImageSizeForAccessibilityContentSizeCategory = true
+        imageView.tintColor = .systemGreen
+        imageView.isAccessibilityElement = false
+        imageView.setContentHuggingPriority(.required, for: .horizontal)
+        imageView.setContentCompressionResistancePriority(UILayoutPriority(999), for: .horizontal)
+        return imageView
+    }()
+
+    private lazy var verifiedLabel: UILabel = {
+        let label = UILabel()
+        label.text = "Verified"
+        label.font = .preferredFont(forTextStyle: .caption1)
+        label.adjustsFontForContentSizeCategory = true
+        label.textColor = .secondaryLabel
+        label.numberOfLines = 0
+        return label
+    }()
+
+    private lazy var verifiedStack: UIStackView = {
+        let stack = UIStackView(arrangedSubviews: [verifiedImageView, verifiedLabel])
+        stack.axis = .horizontal
+        stack.alignment = .center
+        stack.spacing = 6
+        stack.isHidden = true
+        return stack
+    }()
+
+    private lazy var contentStack: UIStackView = {
+        let stack = UIStackView(arrangedSubviews: [titleLabel, textLabel, verifiedStack])
+        stack.axis = .vertical
+        stack.spacing = 16
+        stack.setCustomSpacing(12, after: textLabel)
+        return stack
+    }()
 
     override init(frame: CGRect) {
         super.init(frame: frame)
         backgroundColor = .systemBackground
 
-        titleLabel.font = .preferredFont(forTextStyle: .title2)
-        titleLabel.adjustsFontForContentSizeCategory = true
-        titleLabel.numberOfLines = 0
-        titleLabel.accessibilityTraits = .header
-
-        textLabel.font = .preferredFont(forTextStyle: .body)
-        textLabel.adjustsFontForContentSizeCategory = true
-        textLabel.numberOfLines = 0
-        textLabel.textColor = .secondaryLabel
-
         addSubview(scrollView)
         scrollView.addSubview(contentView)
-        contentView.addSubview(titleLabel)
-        contentView.addSubview(textLabel)
+        contentView.addSubview(contentStack)
 
         scrollView.snp.makeConstraints { make in
             make.edges.equalTo(safeAreaLayoutGuide)
@@ -35,13 +78,8 @@ final class FactDetailsView: UIView {
             make.width.equalTo(scrollView.frameLayoutGuide)
         }
 
-        titleLabel.snp.makeConstraints { make in
-            make.top.leading.trailing.equalToSuperview().inset(24)
-        }
-
-        textLabel.snp.makeConstraints { make in
-            make.top.equalTo(titleLabel.snp.bottom).offset(16)
-            make.leading.trailing.bottom.equalToSuperview().inset(24)
+        contentStack.snp.makeConstraints { make in
+            make.edges.equalToSuperview().inset(24)
         }
     }
 
@@ -49,8 +87,9 @@ final class FactDetailsView: UIView {
         nil
     }
 
-    func configure(title: String, text: String) {
+    func configure(title: String, text: String, isVerified: Bool) {
         titleLabel.text = title
         textLabel.text = text
+        verifiedStack.isHidden = !isVerified
     }
 }
