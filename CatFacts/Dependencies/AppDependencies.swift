@@ -17,4 +17,15 @@ final class AppDependencies {
 
         return AppDependencies(factsService: factsService)
     }
+
+    #if DEBUG
+        static func mockFailure(error: HTTPClientError = .httpStatus(503), environment: AppEnvironment = .current) -> AppDependencies {
+            let factsService = FactsService(
+                httpClient: MockHTTPClient(error: error),
+                baseURL: environment.baseURL
+            )
+
+            return AppDependencies(factsService: factsService)
+        }
+    #endif
 }

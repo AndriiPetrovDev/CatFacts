@@ -67,6 +67,24 @@ final class FactsListViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.items, facts)
     }
 
+    #if DEBUG
+        @MainActor
+        func testMockClientFailureReachesScreenAndCanBeRetried() async {
+            let dependencies = AppDependencies.mockFailure()
+            let viewModel = FactsListViewModel(factsService: dependencies.factsService)
+            var states: [FactsListViewModel.State] = []
+            viewModel.onStateChange = { states.append($0) }
+
+            await viewModel.loadFacts()
+            await viewModel.loadFacts()
+
+            let errorState = FactsListViewModel.State.failed("The server is temporarily unavailable. Please try again.")
+            XCTAssertEqual(states, [.loading, errorState, .loading, errorState])
+            XCTAssertEqual(viewModel.state, errorState)
+            XCTAssertTrue(viewModel.items.isEmpty)
+        }
+    #endif
+
     @MainActor
     func testDuplicateIDsProduceAnErrorBeforeUpdatingCollection() async {
         let fact = makeFact(id: "duplicate")

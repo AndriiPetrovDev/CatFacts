@@ -9,7 +9,14 @@ import UIKit
 
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     var window: UIWindow?
-    private let dependencies = AppDependencies.live()
+    private let dependencies: AppDependencies = {
+        #if DEBUG
+            return .mockFailure()
+        #else
+            return .live()
+        #endif
+    }()
+
     private var coordinator: AppCoordinator?
 
     private lazy var navigationController: UINavigationController = {

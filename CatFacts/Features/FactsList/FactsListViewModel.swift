@@ -66,6 +66,8 @@ final class FactsListViewModel {
             return "You're offline. Check your internet connection and try again."
         case .transport(.timedOut):
             return "The request timed out. Please try again."
+        case .httpStatus(let statusCode) where (500 ..< 600).contains(statusCode):
+            return "The server is temporarily unavailable. Please try again."
         default:
             return "Couldn't load facts. Please try again."
         }
