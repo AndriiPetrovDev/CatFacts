@@ -45,7 +45,6 @@ final class FactDetailsView: UIView {
         }
     }
 
-    @available(*, unavailable)
     required init?(coder: NSCoder) {
         nil
     }

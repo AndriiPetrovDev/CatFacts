@@ -3,25 +3,24 @@ import UIKit
 @MainActor
 final class AppCoordinator: Coordinator {
     private let navigationController: UINavigationController
+    private let screenFactory: any ScreenFactoryProtocol
 
-    init(navigationController: UINavigationController) {
+    init(navigationController: UINavigationController, screenFactory: any ScreenFactoryProtocol) {
         self.navigationController = navigationController
+        self.screenFactory = screenFactory
     }
 
     func start() {
-        let viewModel = FactsListViewModel(items: (1 ... 12).map { "Cat fact \($0)" })
-        viewModel.onSelectFact = { [weak self] title in
-            self?.showFactDetails(title: title)
+        let viewController = screenFactory.makeFactsList { [weak self] fact in
+            self?.showFactDetails(fact: fact)
         }
 
-        let viewController = FactsListViewController(viewModel: viewModel)
         navigationController.navigationBar.prefersLargeTitles = true
         navigationController.setViewControllers([viewController], animated: false)
     }
 
-    private func showFactDetails(title: String) {
-        let viewModel = FactDetailsViewModel(title: title)
-        let viewController = FactDetailsViewController(viewModel: viewModel)
+    private func showFactDetails(fact: CatFact) {
+        let viewController = screenFactory.makeFactDetails(fact: fact)
         navigationController.pushViewController(viewController, animated: true)
     }
 }

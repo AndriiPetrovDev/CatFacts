@@ -2,10 +2,12 @@ import Foundation
 
 @MainActor
 final class FactDetailsViewModel {
-    let title: String
-    let text = "Details for this fact will appear here."
+    let title = "Cat Fact"
+    let fact: CatFact
 
-    init(title: String) {
-        self.title = title
+    var text: String { fact.text }
+
+    init(fact: CatFact) {
+        self.fact = fact
     }
 }

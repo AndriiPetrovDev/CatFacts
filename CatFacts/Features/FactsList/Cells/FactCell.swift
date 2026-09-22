@@ -36,13 +36,12 @@ final class FactCell: UICollectionViewListCell {
         accessibilityHint = "Opens fact details"
     }
 
-    @available(*, unavailable)
     required init?(coder: NSCoder) {
         nil
     }
 
-    func configure(title: String) {
-        titleLabel.text = title
-        accessibilityLabel = title
+    func configure(text: String) {
+        titleLabel.text = text
+        accessibilityLabel = text
     }
 }

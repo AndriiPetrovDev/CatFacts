@@ -1,0 +1,13 @@
+# API and dependency contracts
+
+- `HTTPClientProtocol.send` accepts a `URLRequest` and returns the response body for HTTP 200–299. Empty bodies are valid at this layer. Other status codes throw `HTTPClientError.httpStatus`; connection failures preserve the `URLError.Code` in `HTTPClientError.transport`.
+- Cancelling a task cancels its Alamofire request. Cancellation is reported as `CancellationError`, not as a network failure.
+- `FactsServiceProtocol.fetchFacts` returns domain models. Its implementation performs a GET request with `Accept: application/json` and maps DTOs to `CatFact`. Alamofire types do not appear in either protocol.
+- `AppEnvironment.current` selects the Debug or production configuration using the `DEBUG` compilation condition. Both currently use `https://api.npoint.io/`; change only `AppEnvironment.debug.baseURL` to point Debug builds at another server. `AppDependencies.live(environment:)` also accepts an explicit environment.
+- `FactsService` owns the list path `18962a8a5d00e62a8d2a` and appends it to the injected base URL. Base path prefixes are preserved. An invalid base URL throws `FactsServiceError.invalidBaseURL` before making a request.
+- The response must be a JSON array. `_id`, `text`, `createdAt`, and `status` are required and non-null. Dates use `yyyy-MM-dd'T'HH:mm:ss Z`, as in the provided response, with a POSIX locale and Gregorian calendar.
+- Only `status.verified: true` maps to `isVerified: true`. False, null, and an absent `verified` field map to false. Other types are rejected. Unknown fields, including `sentCount`, are ignored.
+- An empty array is valid. An empty body, malformed JSON, or an invalid required field fails the entire response with `FactsServiceError.decoding`; records are not silently discarded. These are explicit assumptions based on the supplied sample, not a published server schema.
+- `AppDependencies` owns one shared facts service. `ScreenFactory` passes that instance into each consumer through its initializer. A service mock can be supplied to `AppDependencies` in tests. A fresh decoder is created per fetch, so concurrent requests do not share mutable formatter state.
+- Opening the list starts a cancellable task that loads facts through the injected service. The list displays loading, empty, and retryable error states. Cancelling a load restores the previous state.
+- Collection items use fact IDs. A response with duplicate IDs is rejected by the view model to avoid ambiguous selection and invalid diffable snapshots. The coordinator passes the selected domain model to the details screen without another request.
