@@ -1,0 +1,93 @@
+# file options
+--exclude Pods/, apollo-codegen/, **/*.generated.swift, ClideoCore/Sources/RNNoise/, build/
+
+# format options
+
+--allman false
+--binarygrouping 4,8
+--commas inline
+--decimalgrouping 3,6
+--elseposition same-line
+--voidtype void
+--exponentcase lowercase
+--exponentgrouping disabled
+--fractiongrouping disabled
+--header ignore
+--hexgrouping 4,8
+--hexliteralcase uppercase
+--ifdef indent
+--indent 4
+--indentcase false
+--importgrouping none
+--linebreaks lf
+--maxwidth none
+--octalgrouping 4,8
+--operatorfunc spaced
+--patternlet inline
+--ranges spaced
+--self remove
+--selfrequired info,debug,warning,error,critical,notice,fault,waitUntil
+--semicolons inline
+--stripunusedargs closure-only
+--swiftversion 5.7
+--trimwhitespace always
+--wraparguments preserve
+--wrapcollections preserve
+--wrapconditions after-first
+
+# rules
+
+--enable wrapMultilineFunctionChains
+--enable blankLinesBetweenChainedFunctions
+--enable blankLinesAtStartOfScope
+--enable blankLinesAtEndOfScope
+--enable blankLinesBetweenImports
+--enable blankLinesBetweenScopes
+--enable blankLineAfterSwitchCase
+--enable braces
+--enable consecutiveBlankLines
+--enable consecutiveSpaces
+--enable consistentSwitchCaseSpacing
+--enable duplicateImports
+--enable elseOnSameLine
+--enable emptyBraces
+--enable extensionAccessControl
+--enable headerFileName
+--enable leadingDelimiters
+--enable modifiersOnSameLine
+--enable redundantBackticks
+--enable redundantBreak
+--enable redundantClosure
+--enable redundantExtensionACL
+--enable redundantGet
+--enable redundantInit
+--enable redundantInternal
+--enable redundantLet
+--enable redundantNilInit
+--enable redundantOptionalBinding
+--enable redundantParens
+--enable redundantPublic
+--enable redundantRawValues
+--enable redundantStaticSelf
+--enable singlePropertyPerLine
+--enable spaceAroundBrackets
+--enable spaceAroundComments
+--enable spaceInsideBraces
+--enable spaceInsideBrackets
+--enable spaceAroundOperators
+--enable spaceInsideGenerics
+--enable spaceInsideParens
+--enable todos
+--enable trailingClosures
+--enable trailingSpace
+--enable typeSugar
+--enable void
+
+--disable wrapMultilineStatementBraces
+--disable docComments
+--disable redundantVariable
+--disable preferKeyPath
+--disable sortImports
+--disable wrapPropertyBodies
+--disable wrapSwitchCases
+
