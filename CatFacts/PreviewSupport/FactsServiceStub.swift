@@ -1,21 +1,21 @@
 #if DEBUG
-    final class MockFactsService: FactsServiceProtocol {
-        enum Response: Sendable {
+    final class FactsServiceStub: FactsServiceProtocol {
+        enum FetchFactsResponse: Sendable {
             case success([CatFact])
             case failure(HTTPClientError)
             case loading
         }
 
-        private let response: Response
+        private let fetchFactsResponse: FetchFactsResponse
 
-        init(response: Response) {
-            self.response = response
+        init(fetchFactsResponse: FetchFactsResponse) {
+            self.fetchFactsResponse = fetchFactsResponse
         }
 
         func fetchFacts() async throws -> [CatFact] {
             try Task.checkCancellation()
 
-            switch response {
+            switch fetchFactsResponse {
             case .success(let facts):
                 return facts
             case .failure(let error):

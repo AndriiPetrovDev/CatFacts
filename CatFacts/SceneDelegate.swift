@@ -9,14 +9,8 @@ import UIKit
 
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     var window: UIWindow?
-    #if DEBUG
-        // private let dependencies: any AppDependenciesProtocol = AppDependencies()
-        // private let dependencies: any AppDependenciesProtocol = MockAppDependencies.empty()
-        // private let dependencies: any AppDependenciesProtocol = MockAppDependencies.failure()
-        private let dependencies: any AppDependenciesProtocol = MockAppDependencies.loading()
-    #else
-        private let dependencies: any AppDependenciesProtocol = AppDependencies()
-    #endif
+
+    private let dependencies: any AppDependenciesProtocol = AppDependencies()
 
     private var coordinator: AppCoordinator?
 

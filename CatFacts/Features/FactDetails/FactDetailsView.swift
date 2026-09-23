@@ -129,14 +129,15 @@ final class FactDetailsView: UIView {
     @available(iOS 17.0, *)
     @MainActor
     private func makeFactDetailsViewPreview(style: UIUserInterfaceStyle, contentSize: UIContentSizeCategory) -> FactDetailsView {
+        let fact = CatFactFixtures.make()
         let view = FactDetailsView()
         view.traitOverrides.userInterfaceStyle = style
         view.traitOverrides.preferredContentSizeCategory = contentSize
         view.configure(
             title: "Cat Fact",
-            text: "A cat's whiskers help it sense nearby objects and navigate narrow spaces, even in the dark.",
-            isVerified: true,
-            isNew: true
+            text: fact.text,
+            isVerified: fact.isVerified,
+            isNew: fact.isNew
         )
         return view
     }

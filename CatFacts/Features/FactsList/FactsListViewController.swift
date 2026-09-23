@@ -101,29 +101,15 @@ extension FactsListViewController: UICollectionViewDelegate {
 }
 
 #if DEBUG
-    private final class PreviewFactsService: FactsServiceProtocol {
-        func fetchFacts() async throws -> [CatFact] {
-            [
-                CatFact(
-                    id: "preview-1",
-                    text: "Cats spend much of their day sleeping and grooming their fur.",
-                    createdAt: Date(),
-                    isVerified: true
-                ),
-                CatFact(
-                    id: "preview-2",
-                    text: "A cat's whiskers help it sense nearby objects and navigate narrow spaces, even in the dark.",
-                    createdAt: Date(timeIntervalSince1970: 0),
-                    isVerified: false
-                )
-            ]
-        }
-    }
-
     @available(iOS 17.0, *)
     @MainActor
-    private func makeFactsListViewControllerPreview(style: UIUserInterfaceStyle, contentSize: UIContentSizeCategory) -> UINavigationController {
-        let viewModel = FactsListViewModel(factsService: PreviewFactsService())
+    private func makeFactsListViewControllerPreview(
+        factsService: FactsServiceStub = FactsServiceStub(fetchFactsResponse: .success(CatFactFixtures.list)),
+        style: UIUserInterfaceStyle = .light,
+        contentSize: UIContentSizeCategory = .large
+    ) -> UINavigationController {
+        let dependencies = PreviewAppDependencies(factsService: factsService)
+        let viewModel = FactsListViewModel(factsService: dependencies.factsService)
         let controller = FactsListViewController(viewModel: viewModel)
         let navigationController = UINavigationController(rootViewController: controller)
         navigationController.navigationBar.prefersLargeTitles = true
@@ -133,32 +119,37 @@ extension FactsListViewController: UICollectionViewDelegate {
     }
 
     @available(iOS 17.0, *)
-    #Preview("Light · Default") {
-        makeFactsListViewControllerPreview(style: .light, contentSize: .large)
+    #Preview("Loaded · Light · Default") {
+        makeFactsListViewControllerPreview()
     }
 
     @available(iOS 17.0, *)
-    #Preview("Dark · Default") {
-        makeFactsListViewControllerPreview(style: .dark, contentSize: .large)
+    #Preview("Failed") {
+        makeFactsListViewControllerPreview(factsService: FactsServiceStub(fetchFactsResponse: .failure(.httpStatus(503))))
     }
 
     @available(iOS 17.0, *)
-    #Preview("Light · XXXL") {
-        makeFactsListViewControllerPreview(style: .light, contentSize: .extraExtraExtraLarge)
+    #Preview("Empty") {
+        makeFactsListViewControllerPreview(factsService: FactsServiceStub(fetchFactsResponse: .success([])))
     }
 
     @available(iOS 17.0, *)
-    #Preview("Dark · XXXL") {
-        makeFactsListViewControllerPreview(style: .dark, contentSize: .extraExtraExtraLarge)
+    #Preview("Loading") {
+        makeFactsListViewControllerPreview(factsService: FactsServiceStub(fetchFactsResponse: .loading))
     }
 
     @available(iOS 17.0, *)
-    #Preview("Light · Accessibility XXXL") {
-        makeFactsListViewControllerPreview(style: .light, contentSize: .accessibilityExtraExtraExtraLarge)
+    #Preview("Loaded · Light · XXXL") {
+        makeFactsListViewControllerPreview(contentSize: .extraExtraExtraLarge)
     }
 
     @available(iOS 17.0, *)
-    #Preview("Dark · Accessibility XXXL") {
-        makeFactsListViewControllerPreview(style: .dark, contentSize: .accessibilityExtraExtraExtraLarge)
+    #Preview("Loaded · Light · Accessibility XXXL") {
+        makeFactsListViewControllerPreview(contentSize: .accessibilityExtraExtraExtraLarge)
+    }
+
+    @available(iOS 17.0, *)
+    #Preview("Loaded · Dark · Default") {
+        makeFactsListViewControllerPreview(style: .dark)
     }
 #endif

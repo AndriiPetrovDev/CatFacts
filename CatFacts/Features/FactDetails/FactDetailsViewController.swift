@@ -33,12 +33,7 @@ final class FactDetailsViewController: UIViewController {
     @available(iOS 17.0, *)
     @MainActor
     private func makeFactDetailsViewControllerPreview(style: UIUserInterfaceStyle, contentSize: UIContentSizeCategory) -> UINavigationController {
-        let fact = CatFact(
-            id: "preview",
-            text: "A cat's whiskers help it sense nearby objects and navigate narrow spaces, even in the dark.",
-            createdAt: Date(),
-            isVerified: true
-        )
+        let fact = CatFactFixtures.make()
         let controller = FactDetailsViewController(viewModel: FactDetailsViewModel(fact: fact))
         let navigationController = UINavigationController(rootViewController: controller)
         navigationController.traitOverrides.userInterfaceStyle = style

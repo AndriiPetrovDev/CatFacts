@@ -5,7 +5,7 @@ final class FactsListViewModelTests: XCTestCase {
     @MainActor
     func testLoadsServiceFactsAndNotifiesScreen() async {
         let facts = [makeFact(id: "first"), makeFact(id: "second")]
-        let service = FactsServiceStub(responses: [.success(facts)])
+        let service = SequentialFactsServiceStub(responses: [.success(facts)])
         let viewModel = FactsListViewModel(factsService: service)
         var states: [FactsListViewModel.State] = []
         viewModel.onStateChange = { states.append($0) }
@@ -20,7 +20,7 @@ final class FactsListViewModelTests: XCTestCase {
 
     @MainActor
     func testEmptyResponseProducesLoadedEmptyList() async {
-        let service = FactsServiceStub(responses: [.success([])])
+        let service = SequentialFactsServiceStub(responses: [.success([])])
         let viewModel = FactsListViewModel(factsService: service)
 
         await viewModel.loadFacts()
@@ -32,7 +32,7 @@ final class FactsListViewModelTests: XCTestCase {
     @MainActor
     func testCanRetryAfterNetworkFailure() async {
         let facts = [makeFact(id: "first")]
-        let service = FactsServiceStub(responses: [
+        let service = SequentialFactsServiceStub(responses: [
             .failure(HTTPClientError.transport(.notConnectedToInternet)),
             .success(facts)
         ])
@@ -57,7 +57,7 @@ final class FactsListViewModelTests: XCTestCase {
     @MainActor
     func testCancellationRestoresPreviouslyLoadedFacts() async {
         let facts = [makeFact(id: "first")]
-        let service = FactsServiceStub(responses: [.success(facts), .failure(CancellationError())])
+        let service = SequentialFactsServiceStub(responses: [.success(facts), .failure(CancellationError())])
         let viewModel = FactsListViewModel(factsService: service)
 
         await viewModel.loadFacts()
@@ -69,8 +69,9 @@ final class FactsListViewModelTests: XCTestCase {
 
     #if DEBUG
         @MainActor
-        func testMockServiceFailureReachesScreenAndCanBeRetried() async {
-            let dependencies = MockAppDependencies.failure()
+        func testStubServiceFailureReachesScreenAndCanBeRetried() async {
+            let service = FactsServiceStub(fetchFactsResponse: .failure(.httpStatus(503)))
+            let dependencies = PreviewAppDependencies(factsService: service)
             let viewModel = FactsListViewModel(factsService: dependencies.factsService)
             var states: [FactsListViewModel.State] = []
             viewModel.onStateChange = { states.append($0) }
@@ -88,7 +89,7 @@ final class FactsListViewModelTests: XCTestCase {
     @MainActor
     func testDuplicateIDsProduceAnErrorBeforeUpdatingCollection() async {
         let fact = makeFact(id: "duplicate")
-        let service = FactsServiceStub(responses: [.success([fact, fact])])
+        let service = SequentialFactsServiceStub(responses: [.success([fact, fact])])
         let viewModel = FactsListViewModel(factsService: service)
 
         await viewModel.loadFacts()
@@ -103,7 +104,7 @@ final class FactsListViewModelTests: XCTestCase {
     func testSelectsFullFactByIDWhenTextsAreIdentical() async {
         let first = makeFact(id: "first")
         let second = makeFact(id: "second")
-        let service = FactsServiceStub(responses: [.success([first, second])])
+        let service = SequentialFactsServiceStub(responses: [.success([first, second])])
         let viewModel = FactsListViewModel(factsService: service)
         var selections: [CatFact] = []
         viewModel.onSelectFact = { selections.append($0) }
@@ -120,7 +121,7 @@ final class FactsListViewModelTests: XCTestCase {
     }
 }
 
-private actor FactsServiceStub: FactsServiceProtocol {
+private actor SequentialFactsServiceStub: FactsServiceProtocol {
     private enum StubError: Error {
         case unexpectedRequest
     }

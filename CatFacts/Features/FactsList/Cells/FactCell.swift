@@ -107,10 +107,14 @@ final class FactCell: UICollectionViewListCell {
 #if DEBUG
     private final class FactCellPreviewController: UICollectionViewController {
         private let registration = UICollectionView.CellRegistration<FactCell, Int> { cell, _, index in
+            let fact = CatFactFixtures.make(
+                createdAt: index < 2 ? Date() : Date(timeIntervalSince1970: 0),
+                isVerified: index.isMultiple(of: 2)
+            )
             cell.configure(
-                text: "A cat's whiskers help it sense nearby objects and navigate narrow spaces, even in the dark.",
-                isVerified: index.isMultiple(of: 2),
-                isNew: index < 2
+                text: fact.text,
+                isVerified: fact.isVerified,
+                isNew: fact.isNew
             )
         }
 
