@@ -41,6 +41,7 @@
 		DCA4AA1802C2443833D9A450 /* FactsServiceError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 35D34FC519BE7F5511044ACE /* FactsServiceError.swift */; };
 		E7EF31758CE9868B1E224006 /* FactCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB870C2A05EEC588E87FA8D4 /* FactCell.swift */; };
 		F2BD28D6AEB6207BB9DDE5CE /* AppCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5822B82321A3032EC8AE300E /* AppCoordinator.swift */; };
+		F31B21E290D94639882D014A /* CatFactTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E292C1136A024EDBB7E617E0 /* CatFactTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -97,6 +98,7 @@
 		DC8E896F78FC5B6B4129BB2C /* FactsServiceProtocol.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = FactsServiceProtocol.swift; sourceTree = "<group>"; };
 		DCC372C68B0747C96D5DFF2A /* AlamofireHTTPClient.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AlamofireHTTPClient.swift; sourceTree = "<group>"; };
 		E0E4E467BA69CCD125797C98 /* Pods_CatFacts.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_CatFacts.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		E292C1136A024EDBB7E617E0 /* CatFactTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CatFactTests.swift; sourceTree = "<group>"; };
 		FA8160D309B9CEBA688A2A13 /* AppEnvironment.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AppEnvironment.swift; sourceTree = "<group>"; };
 		FE86A26FC1ADBB677AE0C728 /* FactsListViewController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = FactsListViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -170,6 +172,15 @@
 			isa = PBXGroup;
 			children = (
 				49A709C652B8FDE7BCAB6630 /* CatFact.swift */,
+			);
+			name = Models;
+			path = Models;
+			sourceTree = "<group>";
+		};
+		4FE267A43CDE4C689F05D052 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				E292C1136A024EDBB7E617E0 /* CatFactTests.swift */,
 			);
 			name = Models;
 			path = Models;
@@ -272,6 +283,7 @@
 				077E2D03C798BAACF1D4AA92 /* Services */,
 				3B32EEDE3C811A418DF08EF4 /* Fixtures */,
 				488F2A26070EA687305AE0CC /* Features */,
+				4FE267A43CDE4C689F05D052 /* Models */,
 			);
 			path = CatFactsTests;
 			sourceTree = "<group>";
@@ -523,6 +535,7 @@
 				95D19B91254169DC96FF66B1 /* AlamofireHTTPClientTests.swift in Sources */,
 				156652BA6446CA1821CD834E /* FactsServiceTests.swift in Sources */,
 				1C6B0E8D6CF995F6131BCC35 /* FactsListViewModelTests.swift in Sources */,
+				F31B21E290D94639882D014A /* CatFactTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

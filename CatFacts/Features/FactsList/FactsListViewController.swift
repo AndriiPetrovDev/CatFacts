@@ -17,7 +17,7 @@ final class FactsListViewController: UIViewController {
 
     private lazy var dataSource: UICollectionViewDiffableDataSource<Section, CatFact.ID> = {
         let registration = UICollectionView.CellRegistration<FactCell, CatFact> { cell, _, fact in
-            cell.configure(text: fact.text, isVerified: fact.isVerified)
+            cell.configure(text: fact.text, isVerified: fact.isVerified, isNew: fact.isNew)
         }
 
         let viewModel = viewModel
@@ -99,3 +99,66 @@ extension FactsListViewController: UICollectionViewDelegate {
         viewModel.selectFact(withID: id)
     }
 }
+
+#if DEBUG
+    private final class PreviewFactsService: FactsServiceProtocol {
+        func fetchFacts() async throws -> [CatFact] {
+            [
+                CatFact(
+                    id: "preview-1",
+                    text: "Cats spend much of their day sleeping and grooming their fur.",
+                    createdAt: Date(),
+                    isVerified: true
+                ),
+                CatFact(
+                    id: "preview-2",
+                    text: "A cat's whiskers help it sense nearby objects and navigate narrow spaces, even in the dark.",
+                    createdAt: Date(timeIntervalSince1970: 0),
+                    isVerified: false
+                )
+            ]
+        }
+    }
+
+    @available(iOS 17.0, *)
+    @MainActor
+    private func makeFactsListViewControllerPreview(style: UIUserInterfaceStyle, contentSize: UIContentSizeCategory) -> UINavigationController {
+        let viewModel = FactsListViewModel(factsService: PreviewFactsService())
+        let controller = FactsListViewController(viewModel: viewModel)
+        let navigationController = UINavigationController(rootViewController: controller)
+        navigationController.navigationBar.prefersLargeTitles = true
+        navigationController.traitOverrides.userInterfaceStyle = style
+        navigationController.traitOverrides.preferredContentSizeCategory = contentSize
+        return navigationController
+    }
+
+    @available(iOS 17.0, *)
+    #Preview("Light · Default") {
+        makeFactsListViewControllerPreview(style: .light, contentSize: .large)
+    }
+
+    @available(iOS 17.0, *)
+    #Preview("Dark · Default") {
+        makeFactsListViewControllerPreview(style: .dark, contentSize: .large)
+    }
+
+    @available(iOS 17.0, *)
+    #Preview("Light · XXXL") {
+        makeFactsListViewControllerPreview(style: .light, contentSize: .extraExtraExtraLarge)
+    }
+
+    @available(iOS 17.0, *)
+    #Preview("Dark · XXXL") {
+        makeFactsListViewControllerPreview(style: .dark, contentSize: .extraExtraExtraLarge)
+    }
+
+    @available(iOS 17.0, *)
+    #Preview("Light · Accessibility XXXL") {
+        makeFactsListViewControllerPreview(style: .light, contentSize: .accessibilityExtraExtraExtraLarge)
+    }
+
+    @available(iOS 17.0, *)
+    #Preview("Dark · Accessibility XXXL") {
+        makeFactsListViewControllerPreview(style: .dark, contentSize: .accessibilityExtraExtraExtraLarge)
+    }
+#endif

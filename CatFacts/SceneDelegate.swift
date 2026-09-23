@@ -11,9 +11,10 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     var window: UIWindow?
     private let dependencies: AppDependencies = {
         #if DEBUG
-            return .mockFailure()
+            .live()
+//           .mockFailure()
         #else
-            return .live()
+            .live()
         #endif
     }()
 

@@ -83,3 +83,49 @@ final class FactsListView: UIView {
         collectionView.isHidden = !statusStack.isHidden
     }
 }
+
+#if DEBUG
+    @available(iOS 17.0, *)
+    @MainActor
+    private func makeFactsListViewPreview(style: UIUserInterfaceStyle, contentSize: UIContentSizeCategory) -> FactsListView {
+        let view = FactsListView()
+        view.traitOverrides.userInterfaceStyle = style
+        view.traitOverrides.preferredContentSizeCategory = contentSize
+        view.showStatus(
+            isLoading: false,
+            message: "You're offline. Check your internet connection and try again.",
+            canRetry: true
+        )
+        return view
+    }
+
+    @available(iOS 17.0, *)
+    #Preview("Light · Default") {
+        makeFactsListViewPreview(style: .light, contentSize: .large)
+    }
+
+    @available(iOS 17.0, *)
+    #Preview("Dark · Default") {
+        makeFactsListViewPreview(style: .dark, contentSize: .large)
+    }
+
+    @available(iOS 17.0, *)
+    #Preview("Light · XXXL") {
+        makeFactsListViewPreview(style: .light, contentSize: .extraExtraExtraLarge)
+    }
+
+    @available(iOS 17.0, *)
+    #Preview("Dark · XXXL") {
+        makeFactsListViewPreview(style: .dark, contentSize: .extraExtraExtraLarge)
+    }
+
+    @available(iOS 17.0, *)
+    #Preview("Light · Accessibility XXXL") {
+        makeFactsListViewPreview(style: .light, contentSize: .accessibilityExtraExtraExtraLarge)
+    }
+
+    @available(iOS 17.0, *)
+    #Preview("Dark · Accessibility XXXL") {
+        makeFactsListViewPreview(style: .dark, contentSize: .accessibilityExtraExtraExtraLarge)
+    }
+#endif
