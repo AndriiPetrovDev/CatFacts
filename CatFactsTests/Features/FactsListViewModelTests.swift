@@ -69,8 +69,8 @@ final class FactsListViewModelTests: XCTestCase {
 
     #if DEBUG
         @MainActor
-        func testMockClientFailureReachesScreenAndCanBeRetried() async {
-            let dependencies = AppDependencies.mockFailure()
+        func testMockServiceFailureReachesScreenAndCanBeRetried() async {
+            let dependencies = MockAppDependencies.failure()
             let viewModel = FactsListViewModel(factsService: dependencies.factsService)
             var states: [FactsListViewModel.State] = []
             viewModel.onStateChange = { states.append($0) }

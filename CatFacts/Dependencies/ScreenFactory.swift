@@ -2,9 +2,9 @@ import UIKit
 
 @MainActor
 final class ScreenFactory: ScreenFactoryProtocol {
-    private let dependencies: AppDependencies
+    private let dependencies: any AppDependenciesProtocol
 
-    init(dependencies: AppDependencies) {
+    init(dependencies: any AppDependenciesProtocol) {
         self.dependencies = dependencies
     }
 

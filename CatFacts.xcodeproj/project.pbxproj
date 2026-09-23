@@ -12,6 +12,8 @@
 		1A37400C368F4BAC1452E540 /* Coordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E735E3245F20134DC7C8B90 /* Coordinator.swift */; };
 		1C6B0E8D6CF995F6131BCC35 /* FactsListViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 683348EEC407DAF5FD6BD619 /* FactsListViewModelTests.swift */; };
 		1C7F56F6255C76292D865076 /* AppDependencies.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0C4109F7C33087442260F34 /* AppDependencies.swift */; };
+		1D7331078205444AB2D18401 /* AppDependenciesProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D7331078205444AB2D18402 /* AppDependenciesProtocol.swift */; };
+		1D7331078205444AB2D18403 /* MockAppDependencies.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D7331078205444AB2D18404 /* MockAppDependencies.swift */; };
 		368907CB972EDBD1C5DBFA4E /* FactDetailsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0274C761EEFED16B721A4EB /* FactDetailsView.swift */; };
 		3C844216118303DCCAC8350E /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = D59EE6433062EDAE00947FA5 /* Alamofire */; };
 		3E41E06CF4E3ABBAD73B6F62 /* ScreenFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6FFD45089F726F72C64B7CDA /* ScreenFactory.swift */; };
@@ -35,7 +37,7 @@
 		B856B28E0C8C35329533F4AC /* CatFact.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49A709C652B8FDE7BCAB6630 /* CatFact.swift */; };
 		B8A6AC78B119878260CE332C /* CatFactDTO.swift in Sources */ = {isa = PBXBuildFile; fileRef = 985551D32B17E426589BFFF6 /* CatFactDTO.swift */; };
 		C370E8E02498B4DEB0389E3D /* HTTPClientProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95A42C4618DDF75A9EC236A7 /* HTTPClientProtocol.swift */; };
-		C50D3196E1BED1DFBC37ECA7 /* MockHTTPClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4FFFD5AB3C91B9A333391E95 /* MockHTTPClient.swift */; };
+		C50D3196E1BED1DFBC37ECA7 /* MockFactsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4FFFD5AB3C91B9A333391E95 /* MockFactsService.swift */; };
 		D59EE6443062EDAE00947FA5 /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = D59EE6433062EDAE00947FA5 /* Alamofire */; };
 		D6D2F1F4A3389A12BAAE326D /* FactsResponse.json in Resources */ = {isa = PBXBuildFile; fileRef = 680BE011C6F9FC8F4F8F0DF1 /* FactsResponse.json */; };
 		DCA4AA1802C2443833D9A450 /* FactsServiceError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 35D34FC519BE7F5511044ACE /* FactsServiceError.swift */; };
@@ -63,11 +65,13 @@
 
 /* Begin PBXFileReference section */
 		19D0999FE693702787BE08D7 /* HTTPClientError.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HTTPClientError.swift; sourceTree = "<group>"; };
+		1D7331078205444AB2D18402 /* AppDependenciesProtocol.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AppDependenciesProtocol.swift; sourceTree = "<group>"; };
+		1D7331078205444AB2D18404 /* MockAppDependencies.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MockAppDependencies.swift; sourceTree = "<group>"; };
 		2B47CF668E178AEA2BDB172B /* FactDetailsViewController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = FactDetailsViewController.swift; sourceTree = "<group>"; };
 		35D34FC519BE7F5511044ACE /* FactsServiceError.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = FactsServiceError.swift; sourceTree = "<group>"; };
 		41189B09B0616091E83498EE /* FactsService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = FactsService.swift; sourceTree = "<group>"; };
 		49A709C652B8FDE7BCAB6630 /* CatFact.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CatFact.swift; sourceTree = "<group>"; };
-		4FFFD5AB3C91B9A333391E95 /* MockHTTPClient.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MockHTTPClient.swift; sourceTree = "<group>"; };
+		4FFFD5AB3C91B9A333391E95 /* MockFactsService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MockFactsService.swift; sourceTree = "<group>"; };
 		540DA5E9AE645AA09FBD31D1 /* FactsListViewModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = FactsListViewModel.swift; sourceTree = "<group>"; };
 		5822B82321A3032EC8AE300E /* AppCoordinator.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AppCoordinator.swift; sourceTree = "<group>"; };
 		59D285AF09722E34400F605A /* AlamofireHTTPClientTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AlamofireHTTPClientTests.swift; sourceTree = "<group>"; };
@@ -131,6 +135,15 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		1D7331078205444AB2D18405 /* Mocks */ = {
+			isa = PBXGroup;
+			children = (
+				1D7331078205444AB2D18404 /* MockAppDependencies.swift */,
+				4FFFD5AB3C91B9A333391E95 /* MockFactsService.swift */,
+			);
+			path = Mocks;
+			sourceTree = "<group>";
+		};
 		077E2D03C798BAACF1D4AA92 /* Services */ = {
 			isa = PBXGroup;
 			children = (
@@ -200,7 +213,6 @@
 				95A42C4618DDF75A9EC236A7 /* HTTPClientProtocol.swift */,
 				19D0999FE693702787BE08D7 /* HTTPClientError.swift */,
 				DCC372C68B0747C96D5DFF2A /* AlamofireHTTPClient.swift */,
-				4FFFD5AB3C91B9A333391E95 /* MockHTTPClient.swift */,
 			);
 			name = Networking;
 			path = Networking;
@@ -270,6 +282,7 @@
 				4AFBBCC4CE1482619819A05C /* Models */,
 				D2768673B7590F759D588FE4 /* Services */,
 				88D0B4595C1297878A07F44D /* Dependencies */,
+				1D7331078205444AB2D18405 /* Mocks */,
 				B0660F038894196A43EE9879 /* Configuration */,
 			);
 			path = CatFacts;
@@ -301,6 +314,7 @@
 			isa = PBXGroup;
 			children = (
 				C0C4109F7C33087442260F34 /* AppDependencies.swift */,
+				1D7331078205444AB2D18402 /* AppDependenciesProtocol.swift */,
 				7513DD4D4553EFBF0FA510F6 /* ScreenFactoryProtocol.swift */,
 				6FFD45089F726F72C64B7CDA /* ScreenFactory.swift */,
 			);
@@ -521,10 +535,12 @@
 				B8A6AC78B119878260CE332C /* CatFactDTO.swift in Sources */,
 				05FE59B0FBE654BB331E5C31 /* FactsService.swift in Sources */,
 				1C7F56F6255C76292D865076 /* AppDependencies.swift in Sources */,
+				1D7331078205444AB2D18401 /* AppDependenciesProtocol.swift in Sources */,
+				1D7331078205444AB2D18403 /* MockAppDependencies.swift in Sources */,
 				AC648FE40D2D38B16DBEBA62 /* ScreenFactoryProtocol.swift in Sources */,
 				3E41E06CF4E3ABBAD73B6F62 /* ScreenFactory.swift in Sources */,
 				409776DA26670F5D37DE2F93 /* AppEnvironment.swift in Sources */,
-				C50D3196E1BED1DFBC37ECA7 /* MockHTTPClient.swift in Sources */,
+				C50D3196E1BED1DFBC37ECA7 /* MockFactsService.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
