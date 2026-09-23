@@ -12,7 +12,8 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     #if DEBUG
         // private let dependencies: any AppDependenciesProtocol = AppDependencies()
         // private let dependencies: any AppDependenciesProtocol = MockAppDependencies.empty()
-        private let dependencies: any AppDependenciesProtocol = MockAppDependencies.failure()
+        // private let dependencies: any AppDependenciesProtocol = MockAppDependencies.failure()
+        private let dependencies: any AppDependenciesProtocol = MockAppDependencies.loading()
     #else
         private let dependencies: any AppDependenciesProtocol = AppDependencies()
     #endif
