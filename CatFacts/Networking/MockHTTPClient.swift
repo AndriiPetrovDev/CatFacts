@@ -1,7 +1,7 @@
 import Foundation
 
 #if DEBUG
-    struct MockHTTPClient: HTTPClientProtocol {
+    final class MockHTTPClient: HTTPClientProtocol {
         private let error: HTTPClientError
 
         init(error: HTTPClientError = .httpStatus(503)) {

@@ -4,19 +4,22 @@ import Alamofire
 
 final class AlamofireHTTPClientTests: XCTestCase {
     func testReturnsSuccessfulResponseBody() async throws {
-        let data = try await makeClient().send(request(path: "success"))
+        let scenario = HTTPStubScenario.success
+        let expectedResponse = try scenario.response.get()
 
-        XCTAssertEqual(data, Data("[]".utf8))
+        let data = try await makeClient().send(request(for: scenario))
+
+        XCTAssertEqual(data, expectedResponse.body)
     }
 
     func testAcceptsAnEmptySuccessfulBody() async throws {
-        let data = try await makeClient().send(request(path: "empty"))
+        let data = try await makeClient().send(request(for: .empty))
 
         XCTAssertTrue(data.isEmpty)
     }
 
     func testMapsHTTPStatusError() async throws {
-        let request = try request(path: "server-error")
+        let request = try request(for: .serverError)
 
         do {
             _ = try await makeClient().send(request)
@@ -27,7 +30,7 @@ final class AlamofireHTTPClientTests: XCTestCase {
     }
 
     func testPreservesTransportErrorCode() async throws {
-        let request = try request(path: "offline")
+        let request = try request(for: .offline)
 
         do {
             _ = try await makeClient().send(request)
@@ -38,7 +41,7 @@ final class AlamofireHTTPClientTests: XCTestCase {
     }
 
     func testReportsCancellationSeparatelyFromNetworkErrors() async throws {
-        let request = try request(path: "cancelled")
+        let request = try request(for: .cancelled)
 
         do {
             _ = try await makeClient().send(request)
@@ -56,9 +59,32 @@ final class AlamofireHTTPClientTests: XCTestCase {
         return AlamofireHTTPClient(session: Session(configuration: configuration))
     }
 
-    private func request(path: String) throws -> URLRequest {
-        let url = try XCTUnwrap(URL(string: "https://catfacts.test/\(path)"))
+    private func request(for scenario: HTTPStubScenario) throws -> URLRequest {
+        let url = try XCTUnwrap(URL(string: "https://catfacts.test\(scenario.rawValue)"))
         return URLRequest(url: url)
+    }
+}
+
+private enum HTTPStubScenario: String {
+    case success = "/success"
+    case empty = "/empty"
+    case serverError = "/server-error"
+    case offline = "/offline"
+    case cancelled = "/cancelled"
+
+    var response: Result<(statusCode: Int, body: Data), URLError> {
+        switch self {
+        case .success:
+            return .success((statusCode: 200, body: Data("[]".utf8)))
+        case .empty:
+            return .success((statusCode: 200, body: Data()))
+        case .serverError:
+            return .success((statusCode: 503, body: Data("[]".utf8)))
+        case .offline:
+            return .failure(URLError(.notConnectedToInternet))
+        case .cancelled:
+            return .failure(URLError(.cancelled))
+        }
     }
 }
 
@@ -72,33 +98,28 @@ private final class HTTPResponseStub: URLProtocol {
     }
 
     override func startLoading() {
-        guard let url = request.url else {
+        guard let url = request.url,
+              let scenario = HTTPStubScenario(rawValue: url.path) else {
             client?.urlProtocol(self, didFailWithError: URLError(.badURL))
             return
         }
 
-        switch url.path {
-        case "/offline":
-            client?.urlProtocol(self, didFailWithError: URLError(.notConnectedToInternet))
+        let stubResponse: (statusCode: Int, body: Data)
+        do {
+            stubResponse = try scenario.response.get()
+        } catch {
+            client?.urlProtocol(self, didFailWithError: error)
             return
-
-        case "/cancelled":
-            client?.urlProtocol(self, didFailWithError: URLError(.cancelled))
-            return
-
-        default:
-            break
         }
 
-        let statusCode = url.path == "/server-error" ? 503 : 200
-        guard let response = HTTPURLResponse(url: url, statusCode: statusCode, httpVersion: nil, headerFields: nil) else {
+        guard let response = HTTPURLResponse(url: url, statusCode: stubResponse.statusCode, httpVersion: nil, headerFields: nil) else {
             client?.urlProtocol(self, didFailWithError: URLError(.badServerResponse))
             return
         }
 
         client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
-        if url.path != "/empty" {
-            client?.urlProtocol(self, didLoad: Data("[]".utf8))
+        if !stubResponse.body.isEmpty {
+            client?.urlProtocol(self, didLoad: stubResponse.body)
         }
         client?.urlProtocolDidFinishLoading(self)
     }
