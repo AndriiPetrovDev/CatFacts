@@ -9,7 +9,21 @@ final class FactsListLegacyViewController: UIViewController {
     }
 
     private let viewModel: FactsListViewModel
-    private lazy var collectionController = FactsListCollectionViewController(viewModel: viewModel)
+    private lazy var collectionController = FactsListCollectionViewController(
+        viewModel: viewModel,
+        onScroll: { [weak self] in
+            self?.updateSearchPanelStretch()
+        },
+        onScrollDirectionChange: { [weak self] direction in
+            self?.setSearchPanelCollapsed(direction == .down)
+        },
+        onSearchAvailabilityChange: { [weak self] canSearch in
+            self?.setSearchPanelCollapsed(!canSearch)
+        },
+        shouldUpdateAccessibilityFocus: { [weak self] in
+            self?.searchBar.searchTextField.isFirstResponder == false
+        }
+    )
     private var keyboardOverlap: CGFloat = 0
     private var isSearchPanelCollapsed = false
     private var searchPanelHeight: CGFloat = 0
@@ -101,23 +115,11 @@ final class FactsListLegacyViewController: UIViewController {
             navigationItem.compactScrollEdgeAppearance = appearance
         }
 
-        collectionController.onScroll = { [weak self] in
-            self?.updateSearchPanelStretch()
-        }
-        collectionController.onScrollDirectionChange = { [weak self] direction in
-            self?.setSearchPanelCollapsed(direction == .down)
-        }
-        collectionController.shouldUpdateAccessibilityFocus = { [weak self] in
-            self?.searchBar.searchTextField.isFirstResponder == false
-        }
         addChild(collectionController)
         view.addSubview(collectionController.view)
         view.addSubview(searchPanel)
         updateFilterButtons()
         setupConstraints()
-        collectionController.onSearchAvailabilityChange = { [weak self] canSearch in
-            self?.setSearchPanelCollapsed(!canSearch)
-        }
         setSearchPanelCollapsed(!viewModel.canSearch)
         collectionController.didMove(toParent: self)
         if #available(iOS 15.0, *) {

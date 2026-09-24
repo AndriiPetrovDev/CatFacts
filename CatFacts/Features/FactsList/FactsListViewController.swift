@@ -4,7 +4,18 @@ import SnapKit
 @available(iOS 26.0, *)
 final class FactsListViewController: UIViewController {
     private let viewModel: FactsListViewModel
-    private lazy var collectionController = FactsListCollectionViewController(viewModel: viewModel)
+    private lazy var collectionController = FactsListCollectionViewController(
+        viewModel: viewModel,
+        onScrollDirectionChange: { [weak self] direction in
+            self?.setSearchPanelHidden(direction == .down)
+        },
+        onSearchAvailabilityChange: { [weak self] canSearch in
+            self?.setSearchPanelHidden(!canSearch)
+        },
+        shouldUpdateAccessibilityFocus: { [weak self] in
+            self?.searchController.searchBar.searchTextField.isFirstResponder == false
+        }
+    )
     private var isSearchPanelHidden = false
     private var keyboardOverlap: CGFloat = 0
     private var searchPanelBottomConstraint: Constraint?
@@ -80,20 +91,11 @@ final class FactsListViewController: UIViewController {
             navigationItem.searchBarPlacementAllowsToolbarIntegration = true
             toolbarItems = [navigationItem.searchBarPlacementBarButtonItem]
         }
-        collectionController.onScrollDirectionChange = { [weak self] direction in
-            self?.setSearchPanelHidden(direction == .down)
-        }
-        collectionController.shouldUpdateAccessibilityFocus = { [weak self] in
-            self?.searchController.searchBar.searchTextField.isFirstResponder == false
-        }
         addChild(collectionController)
         view.addSubview(collectionController.view)
         view.addSubview(searchPanel)
         updateFilterButtons()
         setupConstraints()
-        collectionController.onSearchAvailabilityChange = { [weak self] canSearch in
-            self?.setSearchPanelHidden(!canSearch)
-        }
         setSearchPanelHidden(!viewModel.canSearch)
         collectionController.didMove(toParent: self)
         setContentScrollView(collectionController.scrollView, for: .top)

@@ -38,13 +38,19 @@ final class FactsListViewModel {
     }
 
     var onStateChange: ((State) -> Void)?
-    var onSelectFact: ((CatFact) -> Void)?
 
     private let factsService: any FactsServiceProtocol
+    private let onSelectFact: ((CatFact) -> Void)?
     private var facts: [CatFact] = []
 
-    init(factsService: any FactsServiceProtocol) {
+    init(
+        factsService: any FactsServiceProtocol,
+        onStateChange: ((State) -> Void)? = nil,
+        onSelectFact: ((CatFact) -> Void)? = nil
+    ) {
         self.factsService = factsService
+        self.onStateChange = onStateChange
+        self.onSelectFact = onSelectFact
     }
 
     func loadFacts() async {

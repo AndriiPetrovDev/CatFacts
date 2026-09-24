@@ -11,14 +11,13 @@ final class FactsListCollectionViewController: UIViewController {
         case main
     }
 
-    var onScroll: (() -> Void)?
-    var onScrollDirectionChange: ((ScrollDirection) -> Void)?
-    var onSearchAvailabilityChange: ((Bool) -> Void)?
-    var shouldUpdateAccessibilityFocus: (() -> Bool)?
-
     var scrollView: UIScrollView { collectionView }
 
     private let viewModel: FactsListViewModel
+    private let onScroll: (() -> Void)?
+    private let onScrollDirectionChange: ((ScrollDirection) -> Void)?
+    private let onSearchAvailabilityChange: ((Bool) -> Void)?
+    private let shouldUpdateAccessibilityFocus: (() -> Bool)?
     private var loadTask: Task<Void, Never>?
     private var isScreenVisible = false
     private var lastPanTranslation: CGFloat = 0
@@ -93,8 +92,18 @@ final class FactsListCollectionViewController: UIViewController {
         return stack
     }()
 
-    init(viewModel: FactsListViewModel) {
+    init(
+        viewModel: FactsListViewModel,
+        onScroll: (() -> Void)? = nil,
+        onScrollDirectionChange: ((ScrollDirection) -> Void)? = nil,
+        onSearchAvailabilityChange: ((Bool) -> Void)? = nil,
+        shouldUpdateAccessibilityFocus: (() -> Bool)? = nil
+    ) {
         self.viewModel = viewModel
+        self.onScroll = onScroll
+        self.onScrollDirectionChange = onScrollDirectionChange
+        self.onSearchAvailabilityChange = onSearchAvailabilityChange
+        self.shouldUpdateAccessibilityFocus = shouldUpdateAccessibilityFocus
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -166,7 +175,9 @@ final class FactsListCollectionViewController: UIViewController {
 
     private func bindViewModel() {
         viewModel.onStateChange = { [weak self] state in
-            self?.render(state)
+            guard let self else { return }
+            self.onSearchAvailabilityChange?(self.viewModel.canSearch)
+            self.render(state)
         }
     }
 
@@ -180,8 +191,6 @@ final class FactsListCollectionViewController: UIViewController {
     }
 
     private func render(_ state: FactsListViewModel.State) {
-        onSearchAvailabilityChange?(viewModel.canSearch)
-
         switch state {
         case .idle:
             showStatus(isLoading: false, message: nil)

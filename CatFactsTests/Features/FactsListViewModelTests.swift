@@ -6,9 +6,11 @@ final class FactsListViewModelTests: XCTestCase {
     func testLoadsServiceFactsAndNotifiesScreen() async {
         let facts = [makeFact(id: "first"), makeFact(id: "second")]
         let service = SequentialFactsServiceStub(responses: [.success(facts)])
-        let viewModel = FactsListViewModel(factsService: service)
         var states: [FactsListViewModel.State] = []
-        viewModel.onStateChange = { states.append($0) }
+        let viewModel = FactsListViewModel(
+            factsService: service,
+            onStateChange: { states.append($0) }
+        )
 
         await viewModel.loadFacts()
 
@@ -69,9 +71,11 @@ final class FactsListViewModelTests: XCTestCase {
             let facts = [makeFact(id: "recovered")]
             let service = FactsServiceStub(fetchFactsResponses: [.failure(.httpStatus(503)), .success(facts)])
             let dependencies = PreviewAppDependencies(factsService: service)
-            let viewModel = FactsListViewModel(factsService: dependencies.factsService)
             var states: [FactsListViewModel.State] = []
-            viewModel.onStateChange = { states.append($0) }
+            let viewModel = FactsListViewModel(
+                factsService: dependencies.factsService,
+                onStateChange: { states.append($0) }
+            )
 
             await viewModel.loadFacts()
             await viewModel.loadFacts()
@@ -114,9 +118,11 @@ final class FactsListViewModelTests: XCTestCase {
             isVerified: false
         )
         let service = SequentialFactsServiceStub(responses: [.success([first, second, duplicate, second])])
-        let viewModel = FactsListViewModel(factsService: service)
         var states: [FactsListViewModel.State] = []
-        viewModel.onStateChange = { states.append($0) }
+        let viewModel = FactsListViewModel(
+            factsService: service,
+            onStateChange: { states.append($0) }
+        )
 
         await viewModel.loadFacts()
 
@@ -129,9 +135,11 @@ final class FactsListViewModelTests: XCTestCase {
         let first = makeFact(id: "first")
         let second = makeFact(id: "second")
         let service = SequentialFactsServiceStub(responses: [.success([first, second])])
-        let viewModel = FactsListViewModel(factsService: service)
         var selections: [CatFact] = []
-        viewModel.onSelectFact = { selections.append($0) }
+        let viewModel = FactsListViewModel(
+            factsService: service,
+            onSelectFact: { selections.append($0) }
+        )
         await viewModel.loadFacts()
 
         viewModel.selectFact(withID: second.id)
