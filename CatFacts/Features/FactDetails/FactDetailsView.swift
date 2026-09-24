@@ -23,68 +23,11 @@ final class FactDetailsView: UIView {
         return label
     }()
 
-    private lazy var newImageView: UIImageView = {
-        let imageView = UIImageView(image: UIImage(systemName: "sparkles"))
-        imageView.preferredSymbolConfiguration = UIImage.SymbolConfiguration(textStyle: .caption1)
-        imageView.adjustsImageSizeForAccessibilityContentSizeCategory = true
-        imageView.tintColor = .systemBlue
-        imageView.isAccessibilityElement = false
-        imageView.setContentHuggingPriority(.required, for: .horizontal)
-        imageView.setContentCompressionResistancePriority(UILayoutPriority(999), for: .horizontal)
-        return imageView
-    }()
-
-    private lazy var newLabel: UILabel = {
-        let label = UILabel()
-        label.text = "New"
-        label.font = .preferredFont(forTextStyle: .caption1)
-        label.adjustsFontForContentSizeCategory = true
-        label.textColor = .systemBlue
-        label.numberOfLines = 0
-        return label
-    }()
-
-    private lazy var newStack: UIStackView = {
-        let stack = UIStackView(arrangedSubviews: [newImageView, newLabel])
-        stack.axis = .horizontal
-        stack.alignment = .center
-        stack.spacing = 6
-        stack.isHidden = true
-        return stack
-    }()
-
-    private lazy var verifiedImageView: UIImageView = {
-        let imageView = UIImageView(image: UIImage(systemName: "checkmark.square.fill"))
-        imageView.preferredSymbolConfiguration = UIImage.SymbolConfiguration(textStyle: .caption1)
-        imageView.adjustsImageSizeForAccessibilityContentSizeCategory = true
-        imageView.tintColor = .systemGreen
-        imageView.isAccessibilityElement = false
-        imageView.setContentHuggingPriority(.required, for: .horizontal)
-        imageView.setContentCompressionResistancePriority(UILayoutPriority(999), for: .horizontal)
-        return imageView
-    }()
-
-    private lazy var verifiedLabel: UILabel = {
-        let label = UILabel()
-        label.text = "Verified"
-        label.font = .preferredFont(forTextStyle: .caption1)
-        label.adjustsFontForContentSizeCategory = true
-        label.textColor = .secondaryLabel
-        label.numberOfLines = 0
-        return label
-    }()
-
-    private lazy var verifiedStack: UIStackView = {
-        let stack = UIStackView(arrangedSubviews: [verifiedImageView, verifiedLabel])
-        stack.axis = .horizontal
-        stack.alignment = .center
-        stack.spacing = 6
-        stack.isHidden = true
-        return stack
-    }()
+    private let newStatusView = FactStatusView(status: .new)
+    private let verifiedStatusView = FactStatusView(status: .verified)
 
     private lazy var contentStack: UIStackView = {
-        let stack = UIStackView(arrangedSubviews: [titleLabel, textLabel, newStack, verifiedStack])
+        let stack = UIStackView(arrangedSubviews: [titleLabel, textLabel, newStatusView, verifiedStatusView])
         stack.axis = .vertical
         stack.spacing = 16
         stack.setCustomSpacing(12, after: textLabel)
@@ -120,15 +63,15 @@ final class FactDetailsView: UIView {
     func configure(title: String, text: String, isVerified: Bool, isNew: Bool) {
         titleLabel.text = title
         textLabel.text = text
-        newStack.isHidden = !isNew
-        verifiedStack.isHidden = !isVerified
+        newStatusView.isHidden = !isNew
+        verifiedStatusView.isHidden = !isVerified
 
         var elements: [UIView] = [titleLabel, textLabel]
         if isNew {
-            elements.append(newLabel)
+            elements.append(newStatusView)
         }
         if isVerified {
-            elements.append(verifiedLabel)
+            elements.append(verifiedStatusView)
         }
         contentStack.accessibilityElements = elements
     }

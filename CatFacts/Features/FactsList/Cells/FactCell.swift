@@ -10,68 +10,11 @@ final class FactCell: UICollectionViewListCell {
         return label
     }()
 
-    private lazy var newImageView: UIImageView = {
-        let imageView = UIImageView(image: UIImage(systemName: "sparkles"))
-        imageView.preferredSymbolConfiguration = UIImage.SymbolConfiguration(textStyle: .caption1)
-        imageView.adjustsImageSizeForAccessibilityContentSizeCategory = true
-        imageView.tintColor = .systemBlue
-        imageView.isAccessibilityElement = false
-        imageView.setContentHuggingPriority(.required, for: .horizontal)
-        imageView.setContentCompressionResistancePriority(UILayoutPriority(999), for: .horizontal)
-        return imageView
-    }()
-
-    private lazy var newLabel: UILabel = {
-        let label = UILabel()
-        label.text = "New"
-        label.font = .preferredFont(forTextStyle: .caption1)
-        label.adjustsFontForContentSizeCategory = true
-        label.textColor = .systemBlue
-        label.numberOfLines = 0
-        return label
-    }()
-
-    private lazy var newStack: UIStackView = {
-        let stack = UIStackView(arrangedSubviews: [newImageView, newLabel])
-        stack.axis = .horizontal
-        stack.alignment = .center
-        stack.spacing = 6
-        stack.isHidden = true
-        return stack
-    }()
-
-    private lazy var verifiedImageView: UIImageView = {
-        let imageView = UIImageView(image: UIImage(systemName: "checkmark.square.fill"))
-        imageView.preferredSymbolConfiguration = UIImage.SymbolConfiguration(textStyle: .caption1)
-        imageView.adjustsImageSizeForAccessibilityContentSizeCategory = true
-        imageView.tintColor = .systemGreen
-        imageView.isAccessibilityElement = false
-        imageView.setContentHuggingPriority(.required, for: .horizontal)
-        imageView.setContentCompressionResistancePriority(UILayoutPriority(999), for: .horizontal)
-        return imageView
-    }()
-
-    private lazy var verifiedLabel: UILabel = {
-        let label = UILabel()
-        label.text = "Verified"
-        label.font = .preferredFont(forTextStyle: .caption1)
-        label.adjustsFontForContentSizeCategory = true
-        label.textColor = .secondaryLabel
-        label.numberOfLines = 0
-        return label
-    }()
-
-    private lazy var verifiedStack: UIStackView = {
-        let stack = UIStackView(arrangedSubviews: [verifiedImageView, verifiedLabel])
-        stack.axis = .horizontal
-        stack.alignment = .center
-        stack.spacing = 6
-        stack.isHidden = true
-        return stack
-    }()
+    private let newStatusView = FactStatusView(status: .new)
+    private let verifiedStatusView = FactStatusView(status: .verified)
 
     private lazy var contentStack: UIStackView = {
-        let stack = UIStackView(arrangedSubviews: [titleLabel, newStack, verifiedStack])
+        let stack = UIStackView(arrangedSubviews: [titleLabel, newStatusView, verifiedStatusView])
         stack.axis = .vertical
         stack.spacing = 10
         return stack
@@ -97,10 +40,10 @@ final class FactCell: UICollectionViewListCell {
 
     func configure(text: String, isVerified: Bool, isNew: Bool, searchQuery: String = "") {
         titleLabel.attributedText = highlightedText(text, query: searchQuery)
-        newStack.isHidden = !isNew
-        verifiedStack.isHidden = !isVerified
+        newStatusView.isHidden = !isNew
+        verifiedStatusView.isHidden = !isVerified
         accessibilityLabel = text
-        let statuses = [isNew ? "New" : nil, isVerified ? "Verified" : nil].compactMap { $0 }
+        let statuses = [newStatusView, verifiedStatusView].filter { !$0.isHidden }.compactMap(\.accessibilityLabel)
         accessibilityValue = statuses.isEmpty ? nil : statuses.joined(separator: ", ")
     }
 
@@ -108,7 +51,7 @@ final class FactCell: UICollectionViewListCell {
         let attributedText = NSMutableAttributedString(string: text)
         guard !query.isEmpty else { return attributedText }
 
-        var searchRange = text.startIndex..<text.endIndex
+        var searchRange = text.startIndex ..< text.endIndex
         while let range = text.range(of: query, options: .caseInsensitive, range: searchRange, locale: .current),
               !range.isEmpty {
             attributedText.addAttribute(
@@ -116,7 +59,7 @@ final class FactCell: UICollectionViewListCell {
                 value: UIColor.systemYellow.withAlphaComponent(0.35),
                 range: NSRange(range, in: text)
             )
-            searchRange = range.upperBound..<text.endIndex
+            searchRange = range.upperBound ..< text.endIndex
         }
 
         return attributedText

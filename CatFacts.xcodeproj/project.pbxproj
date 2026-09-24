@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		03CA158A17954828B7D04701 /* Algorithms in Frameworks */ = {isa = PBXBuildFile; productRef = 03CA158A17954828B7D04702 /* Algorithms */; };
 		05FE59B0FBE654BB331E5C31 /* FactsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41189B09B0616091E83498EE /* FactsService.swift */; };
+		126E10C823ED401C8A1B4201 /* FactStatusView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 126E10C823ED401C8A1B4202 /* FactStatusView.swift */; };
 		156652BA6446CA1821CD834E /* FactsServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 661C87988D524D16C5AC9B64 /* FactsServiceTests.swift */; };
 		1A37400C368F4BAC1452E540 /* Coordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E735E3245F20134DC7C8B90 /* Coordinator.swift */; };
 		1C6B0E8D6CF995F6131BCC35 /* FactsListViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 683348EEC407DAF5FD6BD619 /* FactsListViewModelTests.swift */; };
@@ -67,6 +68,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		126E10C823ED401C8A1B4202 /* FactStatusView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FactStatusView.swift; sourceTree = "<group>"; };
 		19D0999FE693702787BE08D7 /* HTTPClientError.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HTTPClientError.swift; sourceTree = "<group>"; };
 		1D7331078205444AB2D18402 /* AppDependenciesProtocol.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AppDependenciesProtocol.swift; sourceTree = "<group>"; };
 		1D7331078205444AB2D18404 /* PreviewAppDependencies.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PreviewAppDependencies.swift; sourceTree = "<group>"; };
@@ -147,6 +149,14 @@
 				661C87988D524D16C5AC9B64 /* FactsServiceTests.swift */,
 			);
 			path = Services;
+			sourceTree = "<group>";
+		};
+		126E10C823ED401C8A1B4203 /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				126E10C823ED401C8A1B4202 /* FactStatusView.swift */,
+			);
+			path = Components;
 			sourceTree = "<group>";
 		};
 		1D7331078205444AB2D18405 /* PreviewSupport */ = {
@@ -282,6 +292,7 @@
 				88CFD40F26136D3A0090B26A /* Info.plist */,
 				40ACF38C755C0411B03E9A89 /* Navigation */,
 				8EE06421C0B9510FB522AED5 /* Features */,
+				126E10C823ED401C8A1B4203 /* Components */,
 				6587DC5DAB9E55108B0E753A /* Networking */,
 				4AFBBCC4CE1482619819A05C /* Models */,
 				D2768673B7590F759D588FE4 /* Services */,
@@ -526,6 +537,7 @@
 				8C95009653714DCF92638A01 /* FactsListCollectionViewController.swift in Sources */,
 				8C95009653714DCF92638A03 /* FactsListLegacyViewController.swift in Sources */,
 				E7EF31758CE9868B1E224006 /* FactCell.swift in Sources */,
+				126E10C823ED401C8A1B4201 /* FactStatusView.swift in Sources */,
 				B64C5D825F4C94E2427AD6CE /* FactDetailsViewModel.swift in Sources */,
 				9A8DA7275D793ECDF414140E /* FactDetailsViewController.swift in Sources */,
 				368907CB972EDBD1C5DBFA4E /* FactDetailsView.swift in Sources */,
