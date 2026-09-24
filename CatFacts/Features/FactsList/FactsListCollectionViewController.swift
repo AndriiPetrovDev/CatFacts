@@ -183,7 +183,7 @@ final class FactsListCollectionViewController: UIViewController {
         var snapshot = NSDiffableDataSourceSnapshot<Section, CatFact.ID>()
         snapshot.appendSections([.main])
         snapshot.appendItems(items.map(\.id))
-        snapshot.reloadItems(snapshot.itemIdentifiers.filter { existingIDs.contains($0) })
+        snapshot.reconfigureItems(snapshot.itemIdentifiers.filter { existingIDs.contains($0) })
         dataSource.apply(snapshot, animatingDifferences: false) { [weak self] in
             guard let self, self.viewModel.state == .loaded else { return }
             self.updateAccessibilityFocus()

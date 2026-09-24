@@ -18,7 +18,7 @@ final class FactsListLegacyViewController: UIViewController {
             self?.searchBar.searchTextField.isFirstResponder == false
         }
     )
-    private var keyboardOverlap: CGFloat = 0
+    private var keyboardLayoutObserver: KeyboardLayoutObserver?
     private var isSearchPanelCollapsed = false
     private var searchPanelHeight: CGFloat = 0
     private var searchBarHeight: CGFloat = 0
@@ -88,10 +88,6 @@ final class FactsListLegacyViewController: UIViewController {
         nil
     }
 
-    deinit {
-        NotificationCenter.default.removeObserver(self)
-    }
-
     override func viewDidLoad() {
         super.viewDidLoad()
         title = String(localized: "facts.title")
@@ -115,12 +111,7 @@ final class FactsListLegacyViewController: UIViewController {
         setSearchPanelCollapsed(!viewModel.canSearch)
         collectionController.didMove(toParent: self)
         setContentScrollView(collectionController.scrollView, for: .top)
-        NotificationCenter.default.addObserver(
-            self,
-            selector: #selector(keyboardFrameDidChange(_:)),
-            name: UIResponder.keyboardWillChangeFrameNotification,
-            object: nil
-        )
+        keyboardLayoutObserver = KeyboardLayoutObserver(view: view)
     }
 
     override func viewDidLayoutSubviews() {
@@ -188,7 +179,7 @@ final class FactsListLegacyViewController: UIViewController {
             searchPanelHeight = height
             searchPanelHeightConstraint?.update(offset: height)
         }
-        let keyboardInset = max(0, keyboardOverlap - view.safeAreaInsets.bottom)
+        let keyboardInset = keyboardLayoutObserver?.bottomInset ?? 0
         collectionController.updateContentInsets(top: height, bottom: keyboardInset)
         updateSearchPanelStretch()
     }
@@ -258,29 +249,6 @@ final class FactsListLegacyViewController: UIViewController {
             guard let filter = FactsListViewModel.SearchFilter(rawValue: button.tag) else { continue }
             button.isSelected = viewModel.searchFilters.contains(filter)
             button.accessibilityTraits = button.isSelected ? [.button, .selected] : [.button]
-        }
-    }
-
-    @objc private func keyboardFrameDidChange(_ notification: Notification) {
-        guard view.window != nil,
-              let userInfo = notification.userInfo,
-              let frame = userInfo[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect else { return }
-        let keyboardFrame = view.convert(frame, from: nil)
-        keyboardOverlap = keyboardFrame.maxY >= view.bounds.maxY
-            ? max(0, view.bounds.maxY - keyboardFrame.minY)
-            : 0
-        view.setNeedsLayout()
-        if UIAccessibility.isReduceMotionEnabled {
-            UIView.performWithoutAnimation {
-                self.view.layoutIfNeeded()
-            }
-            return
-        }
-        let duration = userInfo[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double ?? 0.25
-        let curve = userInfo[UIResponder.keyboardAnimationCurveUserInfoKey] as? UInt ?? 0
-        let options = UIView.AnimationOptions(rawValue: curve << 16).union(.beginFromCurrentState)
-        UIView.animate(withDuration: duration, delay: 0, options: options) {
-            self.view.layoutIfNeeded()
         }
     }
 }
