@@ -28,11 +28,11 @@ A UIKit take-home application for browsing and searching cat facts, with an emph
 
 ## Localization
 
-Interface and VoiceOver strings are localized into 10 languages: English, Spanish, French, German, Brazilian Portuguese, Russian, Arabic, Hindi, Simplified Chinese, and Japanese. Fact text retains the language supplied by the backend.
+Interface and VoiceOver strings are localized into 10 languages: English, Spanish, French, German, Brazilian Portuguese, Arabic, Hindi, Simplified Chinese, and Japanese. Fact text retains the language supplied by the backend.
 
 ## Previews
 
-Previews cover the list and details, both UI variants, loading, empty and error states, duplicate IDs, localization, right-to-left layout, dark mode, and large text. Local fixtures allow UI review without a live server. Preview helpers are excluded from Release builds.
+Xcode Previews cover the list and details, both UI variants, loading, empty and error states, duplicate IDs, localization, right-to-left layout, dark mode, and large text. Local fixtures allow UI review without a live server. Preview helpers are excluded from Release builds.
 
 <p>
   <img src="docs/screenshots/Loaded · Light · Default.png" width="24%" alt="Fact list in light mode">
@@ -57,8 +57,8 @@ Previews cover the list and details, both UI variants, loading, empty and error 
 
 ## Tests
 
-Unit tests exercise decoding, date boundaries, transport errors, state transitions, retry, error-message mapping, and completeness of localized resources. Injected services and a custom `URLProtocol` keep these tests independent of the live API.
+Unit tests exercise decoding, date boundaries, transport errors, state transitions, retry, search and filter combinations, error-message mapping, and completeness of localized resources. Injected services and a custom `URLProtocol` keep these tests independent of the live API.
 
 ## Current gaps
 
-UI tests still contain the skeleton launch checks; search/filter combinations and cancellation of an active HTTP request need dedicated coverage. The freshness rule currently also marks future-dated facts as new. These remain explicit follow-up items rather than claims of complete production readiness.
+UI tests still contain the skeleton launch checks. The freshness rule currently also marks future-dated facts as new. These remain explicit follow-up items rather than claims of complete production readiness.
