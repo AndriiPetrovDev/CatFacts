@@ -1,0 +1,17 @@
+"facts.title" = "Datos sobre gatos";
+"fact.title" = "Dato sobre gatos";
+"details.title" = "Detalles del dato";
+"search.placeholder" = "Buscar datos";
+"status.new" = "Nuevo";
+"status.verified" = "Verificado";
+"status.separator" = ", ";
+"action.retry" = "Reintentar";
+"accessibility.retry" = "Vuelve a cargar los datos sobre gatos";
+"accessibility.openDetails" = "Abre los detalles del dato";
+"facts.loading" = "Cargando datos…";
+"facts.empty" = "Aún no hay datos.";
+"search.empty" = "No se encontraron datos.";
+"error.offline" = "No tienes conexión. Comprueba tu conexión a internet e inténtalo de nuevo.";
+"error.timeout" = "La solicitud tardó demasiado. Inténtalo de nuevo.";
+"error.server" = "El servidor no está disponible temporalmente. Inténtalo de nuevo.";
+"error.generic" = "No se pudieron cargar los datos. Inténtalo de nuevo.";

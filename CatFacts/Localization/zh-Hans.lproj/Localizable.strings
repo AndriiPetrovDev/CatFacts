@@ -1,0 +1,17 @@
+"facts.title" = "猫咪小知识";
+"fact.title" = "猫咪知识";
+"details.title" = "知识详情";
+"search.placeholder" = "搜索猫咪知识";
+"status.new" = "新";
+"status.verified" = "已验证";
+"status.separator" = "、";
+"action.retry" = "重试";
+"accessibility.retry" = "重新加载猫咪知识";
+"accessibility.openDetails" = "打开知识详情";
+"facts.loading" = "正在加载猫咪知识…";
+"facts.empty" = "暂无猫咪知识。";
+"search.empty" = "未找到相关知识。";
+"error.offline" = "当前处于离线状态。请检查网络连接后重试。";
+"error.timeout" = "请求超时。请重试。";
+"error.server" = "服务器暂时不可用。请重试。";
+"error.generic" = "无法加载猫咪知识。请重试。";

@@ -1,0 +1,346 @@
+import UIKit
+import SnapKit
+
+final class FactsListLegacyViewController: UIViewController {
+    private let viewModel: FactsListViewModel
+    private lazy var collectionController = FactsListCollectionViewController(
+        viewModel: viewModel,
+        onScroll: { [weak self] in
+            self?.updateSearchPanelStretch()
+        },
+        onScrollDirectionChange: { [weak self] direction in
+            self?.setSearchPanelCollapsed(direction == .down)
+        },
+        onSearchAvailabilityChange: { [weak self] canSearch in
+            self?.setSearchPanelCollapsed(!canSearch)
+        },
+        shouldUpdateAccessibilityFocus: { [weak self] in
+            self?.searchBar.searchTextField.isFirstResponder == false
+        }
+    )
+    private var keyboardLayoutObserver: KeyboardLayoutObserver?
+    private var isSearchPanelCollapsed = false
+    private var searchPanelHeight: CGFloat = 0
+    private var searchBarHeight: CGFloat = 0
+    private var searchPanelHeightConstraint: Constraint?
+    private var searchBarHeightConstraint: Constraint?
+
+    private lazy var searchBar: UISearchBar = {
+        let bar = UISearchBar()
+        bar.delegate = self
+        bar.placeholder = String(localized: "search.placeholder")
+        bar.searchTextField.accessibilityIdentifier = "facts.search"
+        bar.text = viewModel.searchQuery
+        bar.autocapitalizationType = .none
+        bar.autocorrectionType = .no
+        bar.backgroundImage = UIImage()
+        return bar
+    }()
+
+    private lazy var filterButtons = [
+        makeFilterButton(title: String(localized: "status.verified"), filter: .verified),
+        makeFilterButton(title: String(localized: "status.new"), filter: .new)
+    ]
+
+    private lazy var filterBar: UIStackView = {
+        let stack = UIStackView(arrangedSubviews: filterButtons)
+        stack.axis = .horizontal
+        stack.spacing = AppLayout.spacing
+        stack.alignment = .center
+        return stack
+    }()
+
+    private lazy var filterContainer: UIView = {
+        let container = UIView()
+        container.addSubview(filterBar)
+        return container
+    }()
+
+    private lazy var searchContent: UIStackView = {
+        let stack = UIStackView(arrangedSubviews: [searchBar, filterContainer])
+        stack.axis = .vertical
+        stack.isLayoutMarginsRelativeArrangement = true
+        stack.insetsLayoutMarginsFromSafeArea = false
+        let inset = AppLayout.horizontalInset - AppLayout.spacing
+        stack.directionalLayoutMargins = NSDirectionalEdgeInsets(
+            top: 0,
+            leading: inset,
+            bottom: AppLayout.sectionSpacing,
+            trailing: inset
+        )
+        return stack
+    }()
+
+    private lazy var searchPanel: UIView = {
+        let panel = UIView()
+        panel.backgroundColor = .systemGroupedBackground
+        panel.clipsToBounds = true
+        panel.addSubview(searchContent)
+        return panel
+    }()
+
+    init(viewModel: FactsListViewModel) {
+        self.viewModel = viewModel
+        super.init(nibName: nil, bundle: nil)
+    }
+
+    required init?(coder: NSCoder) {
+        nil
+    }
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        title = String(localized: "facts.title")
+        navigationItem.largeTitleDisplayMode = .always
+        view.backgroundColor = .systemGroupedBackground
+
+        let appearance = UINavigationBarAppearance()
+        appearance.configureWithOpaqueBackground()
+        appearance.backgroundColor = .systemGroupedBackground
+        appearance.shadowColor = .clear
+        navigationItem.standardAppearance = appearance
+        navigationItem.scrollEdgeAppearance = appearance
+        navigationItem.compactAppearance = appearance
+        navigationItem.compactScrollEdgeAppearance = appearance
+
+        addChild(collectionController)
+        view.addSubview(collectionController.view)
+        view.addSubview(searchPanel)
+        updateFilterButtons()
+        setupConstraints()
+        setSearchPanelCollapsed(!viewModel.canSearch)
+        collectionController.didMove(toParent: self)
+        setContentScrollView(collectionController.scrollView, for: .top)
+        keyboardLayoutObserver = KeyboardLayoutObserver(view: view)
+    }
+
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        updateSearchPanelLayout()
+    }
+
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        if isMovingFromParent || navigationController?.topViewController !== self {
+            searchBar.resignFirstResponder()
+        }
+    }
+
+    private func setupConstraints() {
+        searchBarHeight = max(44, searchBar.sizeThatFits(view.bounds.size).height)
+        searchPanelHeight = searchBarHeight
+            + filterBar.systemLayoutSizeFitting(UIView.layoutFittingCompressedSize).height
+            + AppLayout.sectionSpacing
+
+        collectionController.view.snp.makeConstraints { make in
+            make.edges.equalToSuperview()
+        }
+
+        searchPanel.snp.makeConstraints { make in
+            make.top.leading.trailing.equalTo(view.safeAreaLayoutGuide)
+            searchPanelHeightConstraint = make.height.equalTo(searchPanelHeight).constraint
+        }
+
+        searchContent.snp.makeConstraints { make in
+            make.bottom.leading.trailing.equalToSuperview()
+        }
+
+        searchBar.snp.makeConstraints { make in
+            searchBarHeightConstraint = make.height.equalTo(searchBarHeight).constraint
+        }
+
+        filterBar.snp.makeConstraints { make in
+            make.top.bottom.equalToSuperview()
+            make.leading.equalToSuperview().offset(AppLayout.spacing)
+            make.trailing.lessThanOrEqualToSuperview().inset(AppLayout.spacing)
+        }
+    }
+
+    private func updateSearchPanelLayout() {
+        let width = view.safeAreaLayoutGuide.layoutFrame.width
+        guard width > 0 else { return }
+
+        let margins = searchContent.directionalLayoutMargins
+        let barWidth = max(0, width - margins.leading - margins.trailing)
+        let barHeight = max(44, searchBar.sizeThatFits(CGSize(width: barWidth, height: .greatestFiniteMagnitude)).height)
+        if abs(searchBarHeight - barHeight) > 0.5 {
+            searchBarHeight = barHeight
+            searchBarHeightConstraint?.update(offset: barHeight)
+        }
+
+        let contentHeight = searchContent.systemLayoutSizeFitting(
+            CGSize(width: width, height: UIView.layoutFittingCompressedSize.height),
+            withHorizontalFittingPriority: .required,
+            verticalFittingPriority: .fittingSizeLevel
+        )
+        .height
+        let height = isSearchPanelCollapsed ? 0 : ceil(contentHeight)
+        if abs(searchPanelHeight - height) > 0.5 {
+            searchPanelHeight = height
+            searchPanelHeightConstraint?.update(offset: height)
+        }
+        let keyboardInset = keyboardLayoutObserver?.bottomInset ?? 0
+        collectionController.updateContentInsets(top: height, bottom: keyboardInset)
+        updateSearchPanelStretch()
+    }
+
+    private func updateSearchPanelStretch() {
+        let scrollView = collectionController.scrollView
+        let overscroll = max(0, -scrollView.contentOffset.y - scrollView.adjustedContentInset.top)
+        let offset = isSearchPanelCollapsed ? 0 : overscroll
+        searchPanel.transform = CGAffineTransform(translationX: 0, y: offset)
+    }
+
+    private func setSearchPanelCollapsed(_ collapsed: Bool) {
+        let collapsed = collapsed || !viewModel.canSearch
+        guard isSearchPanelCollapsed != collapsed else { return }
+        view.layoutIfNeeded()
+        isSearchPanelCollapsed = collapsed
+        searchPanel.isUserInteractionEnabled = !collapsed
+        searchPanel.accessibilityElementsHidden = collapsed
+        if collapsed {
+            searchBar.resignFirstResponder()
+        }
+
+        let updateLayout = {
+            self.updateSearchPanelLayout()
+            self.view.layoutIfNeeded()
+        }
+        if view.window == nil || UIAccessibility.isReduceMotionEnabled {
+            UIView.performWithoutAnimation(updateLayout)
+        } else {
+            UIView.animate(
+                withDuration: 0.25,
+                delay: 0,
+                options: [.beginFromCurrentState, .allowUserInteraction, .curveEaseInOut],
+                animations: updateLayout
+            )
+        }
+    }
+
+    private func makeFilterButton(title: String, filter: FactsListViewModel.SearchFilter) -> UIButton {
+        var configuration = UIButton.Configuration.filled()
+        configuration.cornerStyle = .medium
+        configuration.title = title
+        configuration.buttonSize = .medium
+
+        let button = UIButton(type: .system)
+        button.configuration = configuration
+        button.accessibilityIdentifier = filter == .verified ? "facts.filter.verified" : "facts.filter.new"
+        button.tag = filter.rawValue
+        button.titleLabel?.adjustsFontForContentSizeCategory = true
+        button.configurationUpdateHandler = { button in
+            guard var configuration = button.configuration else { return }
+            configuration.baseBackgroundColor = button.isSelected ? button.tintColor : .systemGray5
+            configuration.baseForegroundColor = button.isSelected ? .white : .label
+            button.configuration = configuration
+        }
+
+        button.addAction(UIAction { [weak self] _ in
+            guard let self else { return }
+            self.viewModel.toggleSearchFilter(filter)
+            self.updateFilterButtons()
+        }, for: .touchUpInside)
+        return button
+    }
+
+    private func updateFilterButtons() {
+        for button in filterButtons {
+            guard let filter = FactsListViewModel.SearchFilter(rawValue: button.tag) else { continue }
+            button.isSelected = viewModel.searchFilters.contains(filter)
+            button.accessibilityTraits = button.isSelected ? [.button, .selected] : [.button]
+        }
+    }
+}
+
+extension FactsListLegacyViewController: UISearchBarDelegate {
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        viewModel.updateSearchQuery(searchText)
+    }
+
+    func searchBarTextDidBeginEditing(_ searchBar: UISearchBar) {
+        setSearchPanelCollapsed(false)
+        searchBar.setShowsCancelButton(true, animated: !UIAccessibility.isReduceMotionEnabled)
+    }
+
+    func searchBarTextDidEndEditing(_ searchBar: UISearchBar) {
+        searchBar.setShowsCancelButton(false, animated: !isSearchPanelCollapsed && !UIAccessibility.isReduceMotionEnabled)
+    }
+
+    func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
+        searchBar.text = ""
+        viewModel.updateSearchQuery("")
+        searchBar.resignFirstResponder()
+    }
+
+    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+        searchBar.resignFirstResponder()
+    }
+}
+
+#if DEBUG
+    import SwiftUI
+
+    @MainActor
+    private func makeFactsListLegacyViewControllerPreview(
+        factsService: FactsServiceStub = FactsServiceStub(fetchFactsResponse: .success(CatFactFixtures.list)),
+        style: UIUserInterfaceStyle = .light,
+        contentSize: UIContentSizeCategory = .large
+    ) -> UINavigationController {
+        let viewModel = FactsListViewModel(factsService: factsService)
+        let controller = FactsListLegacyViewController(viewModel: viewModel)
+        let navigationController = UINavigationController(rootViewController: controller)
+        navigationController.navigationBar.prefersLargeTitles = true
+        navigationController.traitOverrides.userInterfaceStyle = style
+        navigationController.traitOverrides.preferredContentSizeCategory = contentSize
+        return navigationController
+    }
+
+    #Preview("Loaded · Light · Default") {
+        makeFactsListLegacyViewControllerPreview()
+    }
+
+    #Preview("Duplicate IDs") {
+        makeFactsListLegacyViewControllerPreview(factsService: FactsServiceStub(fetchFactsResponse: .success(CatFactFixtures.listWithDuplicateIDs)))
+    }
+
+    #Preview("Error · Server") {
+        makeFactsListLegacyViewControllerPreview(factsService: FactsServiceStub(fetchFactsResponse: .failure(.httpStatus(503))))
+    }
+
+    #Preview("Error · Offline") {
+        makeFactsListLegacyViewControllerPreview(factsService: FactsServiceStub(fetchFactsResponse: .failure(.transport(.notConnectedToInternet))))
+    }
+
+    #Preview("Error · Timeout") {
+        makeFactsListLegacyViewControllerPreview(factsService: FactsServiceStub(fetchFactsResponse: .failure(.transport(.timedOut))))
+    }
+
+    #Preview("Error · Generic") {
+        makeFactsListLegacyViewControllerPreview(factsService: FactsServiceStub(fetchFactsResponse: .failure(.invalidResponse)))
+    }
+
+    #Preview("Empty") {
+        makeFactsListLegacyViewControllerPreview(factsService: FactsServiceStub(fetchFactsResponse: .success([])))
+    }
+
+    #Preview("Loading") {
+        makeFactsListLegacyViewControllerPreview(factsService: FactsServiceStub(fetchFactsResponse: .loading))
+    }
+
+    #Preview("Slow Internet · 2s") {
+        makeFactsListLegacyViewControllerPreview(factsService: FactsServiceStub(fetchFactsResponse: .slowInternet(CatFactFixtures.list)))
+    }
+
+    #Preview("Loaded · Light · XXXL") {
+        makeFactsListLegacyViewControllerPreview(contentSize: .extraExtraExtraLarge)
+    }
+
+    #Preview("Loaded · Light · Accessibility XXXL") {
+        makeFactsListLegacyViewControllerPreview(contentSize: .accessibilityExtraExtraExtraLarge)
+    }
+
+    #Preview("Loaded · Dark · Default") {
+        makeFactsListLegacyViewControllerPreview(style: .dark)
+    }
+#endif

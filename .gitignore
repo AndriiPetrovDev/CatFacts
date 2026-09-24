@@ -91,3 +91,4 @@ iOSInjectionProject/
 
 # Project specific
 CatFacts.zip
+!CatFacts/Dependencies/
