@@ -48,6 +48,13 @@ Previews cover the list and details, both UI variants, loading, empty and error 
   <img src="docs/screenshots/Loaded · Dark · Default.png" width="24%" alt="Fact list in dark mode">
 </p>
 
+<p>
+  <img src="docs/screenshots/Search.png" width="24%" alt="Search results with highlighted matches and the Verified filter enabled">
+  <img src="docs/screenshots/iOS18-small.png" width="24%" alt="Fact list on iOS 18 with search and filters visible">
+  <img src="docs/screenshots/iOS18-shide on scroll.png" width="24%" alt="Fact list on iOS 18 with search and filters hidden after scrolling">
+  <img src="docs/screenshots/iOS18-large.png" width="24%" alt="Fact details on iOS 18 with large text and a Verified indicator">
+</p>
+
 ## Tests
 
 Unit tests exercise decoding, date boundaries, transport errors, state transitions, retry, error-message mapping, and completeness of localized resources. Injected services and a custom `URLProtocol` keep these tests independent of the live API.

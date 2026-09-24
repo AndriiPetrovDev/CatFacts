@@ -1,3 +1,3 @@
-# Инструкции для агентов
+# Agent instructions
 
-- Не запускай сборку проекта, если пользователь явно не попросил об этом.
+- Do not build the project unless the user explicitly requests it.

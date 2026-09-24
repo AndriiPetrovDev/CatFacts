@@ -95,7 +95,7 @@ final class FactsServiceTests: XCTestCase {
         let response = #"""
         [{
             "_id": "66ac00000000000000000001",
-            "text": "A cat says \"meow\".\nКот в caf\u00e9 \ud83d\udc08",
+            "text": "A cat says \"meow\".\nA cat in a caf\u00e9 \ud83d\udc08",
             "status": {"verified": true, "sentCount": 128},
             "createdAt": "2022-06-29T09:15:00 +0000"
         }]
@@ -104,7 +104,7 @@ final class FactsServiceTests: XCTestCase {
         let facts = try await decodeResponse(response)
 
         XCTAssertEqual(facts.count, 1)
-        XCTAssertEqual(facts.first?.text, "A cat says \"meow\".\nКот в café 🐈")
+        XCTAssertEqual(facts.first?.text, "A cat says \"meow\".\nA cat in a café 🐈")
     }
 
     func testUsesGETAndRequestsJSON() async throws {

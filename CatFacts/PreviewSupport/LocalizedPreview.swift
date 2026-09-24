@@ -10,15 +10,15 @@
 
         private let languages = [
             (code: "en", name: "English"),
-            (code: "es", name: "Español"),
-            (code: "fr", name: "Français"),
-            (code: "de", name: "Deutsch"),
-            (code: "pt-BR", name: "Português (Brasil)"),
-            (code: "ru", name: "Русский"),
-            (code: "ar", name: "العربية"),
-            (code: "hi", name: "हिन्दी"),
-            (code: "zh-Hans", name: "简体中文"),
-            (code: "ja", name: "日本語")
+            (code: "es", name: "Spanish"),
+            (code: "fr", name: "French"),
+            (code: "de", name: "German"),
+            (code: "pt-BR", name: "Brazilian Portuguese"),
+            (code: "ru", name: "Russian"),
+            (code: "ar", name: "Arabic"),
+            (code: "hi", name: "Hindi"),
+            (code: "zh-Hans", name: "Simplified Chinese"),
+            (code: "ja", name: "Japanese")
         ]
 
         var body: some View {
