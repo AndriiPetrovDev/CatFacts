@@ -27,6 +27,10 @@ final class FactsListViewModel {
         !searchQuery.isEmpty || !searchFilters.isEmpty
     }
 
+    var canSearch: Bool {
+        state == .loaded && !facts.isEmpty
+    }
+
     private(set) var searchQuery = ""
     private(set) var searchFilters: Set<SearchFilter> = []
     private(set) var state: State = .idle {

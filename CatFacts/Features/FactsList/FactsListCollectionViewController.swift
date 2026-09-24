@@ -13,7 +13,7 @@ final class FactsListCollectionViewController: UIViewController {
 
     var onScroll: (() -> Void)?
     var onScrollDirectionChange: ((ScrollDirection) -> Void)?
-    var onShowStatus: (() -> Void)?
+    var onSearchAvailabilityChange: ((Bool) -> Void)?
     var shouldUpdateAccessibilityFocus: (() -> Bool)?
 
     var scrollView: UIScrollView { collectionView }
@@ -177,6 +177,8 @@ final class FactsListCollectionViewController: UIViewController {
     }
 
     private func render(_ state: FactsListViewModel.State) {
+        onSearchAvailabilityChange?(viewModel.canSearch)
+
         switch state {
         case .idle:
             showStatus(isLoading: false, message: nil)
@@ -212,9 +214,6 @@ final class FactsListCollectionViewController: UIViewController {
         statusStack.accessibilityElements = statusElements.filter { !$0.isHidden }
         statusStack.isHidden = !isLoading && message == nil
         collectionView.isHidden = !statusStack.isHidden
-        if !statusStack.isHidden {
-            onShowStatus?()
-        }
     }
 
     private func applySnapshot() {

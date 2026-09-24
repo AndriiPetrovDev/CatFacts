@@ -21,18 +21,33 @@ A UIKit take-home application for browsing and searching cat facts, with an emph
 
 ## Reliability
 
-- **Actionable errors:** offline, timeout, and server failures have distinct localized messages and a retry action; other failures use a generic fallback. Each message category has a stub-driven preview for both UI variants and unit-test assertions.
+- **Actionable errors:** offline, timeout, and server failures have distinct localized messages and a retry action; other failures use a generic fallback. Each message category has unit-test assertions.
 - **Cancellation:** cancelled work restores the previous state instead of displaying a network error. Loading tasks have an explicit owner, and overlapping loads are prevented.
 - **Data handling:** explicit decoding rules and stable IDs make malformed responses and duplicates predictable. API assumptions are recorded in [docs/API.md](docs/API.md).
 - **Date decoding:** one decoder and one formatter are created per response and reused for the entire array, avoiding formatter creation for each record. Explicit locale and calendar settings keep decoding independent of device preferences.
 
-## Localization and development feedback
+## Localization
 
 Interface and VoiceOver strings are localized into 10 languages: English, Spanish, French, German, Brazilian Portuguese, Russian, Arabic, Hindi, Simplified Chinese, and Japanese. Fact text retains the language supplied by the backend.
 
-The **Languages** previews provide a language picker for the list, details, and offline state, including right-to-left layout for Arabic. Localization is injected per preview, so switching languages does not change global application settings.
+## Previews
 
-Local fixtures also make loading, empty, error, duplicate-ID, dark-mode, and large-text states available without a live server. Preview helpers are excluded from Release builds.
+Previews cover the list and details, both UI variants, loading, empty and error states, duplicate IDs, localization, right-to-left layout, dark mode, and large text. Local fixtures allow UI review without a live server. Preview helpers are excluded from Release builds.
+<p>
+  <img src="screenshots/Loaded · Light · Default.png" width="24%" alt="Экран 1">
+  <img src="screenshots/Error · Server.png" width="24%" alt="Экран 2">
+  <img src="screenshots/Languages · List.png" width="24%" alt="Экран 3">
+  <img src="screenshots/Languages · Offline.png" width="24%" alt="Экран 4">
+</p>
+
+<p>
+  <img src="screenshots/Loading.png" width="24%" alt="Экран 5">
+  <img src="screenshots/Loaded · Light · Accessibility XXXL.png" width="24%" alt="Экран 6">
+  <img src="screenshots/Loaded · Light · XXXL.png" width="24%" alt="Экран 7">
+  <img src="screenshots/Loaded · Dark · Default.png" width="24%" alt="Экран 8">
+</p>
+
+## Tests
 
 Unit tests exercise decoding, date boundaries, transport errors, state transitions, retry, error-message mapping, and completeness of localized resources. Injected services and a custom `URLProtocol` keep these tests independent of the live API.
 

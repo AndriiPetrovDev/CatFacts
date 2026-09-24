@@ -106,9 +106,6 @@ final class FactsListLegacyViewController: UIViewController {
         collectionController.onScrollDirectionChange = { [weak self] direction in
             self?.setSearchPanelCollapsed(direction == .down)
         }
-        collectionController.onShowStatus = { [weak self] in
-            self?.setSearchPanelCollapsed(false)
-        }
         collectionController.shouldUpdateAccessibilityFocus = { [weak self] in
             self?.searchBar.searchTextField.isFirstResponder == false
         }
@@ -117,6 +114,10 @@ final class FactsListLegacyViewController: UIViewController {
         view.addSubview(searchPanel)
         updateFilterButtons()
         setupConstraints()
+        collectionController.onSearchAvailabilityChange = { [weak self] canSearch in
+            self?.setSearchPanelCollapsed(!canSearch)
+        }
+        setSearchPanelCollapsed(!viewModel.canSearch)
         collectionController.didMove(toParent: self)
         if #available(iOS 15.0, *) {
             setContentScrollView(collectionController.scrollView, for: .top)
@@ -207,6 +208,7 @@ final class FactsListLegacyViewController: UIViewController {
     }
 
     private func setSearchPanelCollapsed(_ collapsed: Bool) {
+        let collapsed = collapsed || !viewModel.canSearch
         guard isSearchPanelCollapsed != collapsed else { return }
         view.layoutIfNeeded()
         isSearchPanelCollapsed = collapsed
@@ -220,7 +222,7 @@ final class FactsListLegacyViewController: UIViewController {
             self.updateSearchPanelLayout()
             self.view.layoutIfNeeded()
         }
-        if UIAccessibility.isReduceMotionEnabled {
+        if view.window == nil || UIAccessibility.isReduceMotionEnabled {
             UIView.performWithoutAnimation(updateLayout)
         } else {
             UIView.animate(
@@ -404,6 +406,11 @@ extension FactsListLegacyViewController: UISearchBarDelegate {
     @available(iOS 17.0, *)
     #Preview("Loading") {
         makeFactsListLegacyViewControllerPreview(factsService: FactsServiceStub(fetchFactsResponse: .loading))
+    }
+
+    @available(iOS 17.0, *)
+    #Preview("Slow Internet · 2s") {
+        makeFactsListLegacyViewControllerPreview(factsService: FactsServiceStub(fetchFactsResponse: .slowInternet(CatFactFixtures.list)))
     }
 
     @available(iOS 17.0, *)

@@ -2,6 +2,7 @@
     final class FactsServiceStub: FactsServiceProtocol {
         enum FetchFactsResponse: Sendable {
             case success([CatFact])
+            case slowInternet([CatFact])
             case failure(HTTPClientError)
             case loading
         }
@@ -17,6 +18,9 @@
 
             switch fetchFactsResponse {
             case .success(let facts):
+                return facts
+            case .slowInternet(let facts):
+                try await Task.sleep(nanoseconds: 2_000_000_000)
                 return facts
             case .failure(let error):
                 throw error

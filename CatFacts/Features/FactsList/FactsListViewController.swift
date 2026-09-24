@@ -82,9 +82,6 @@ final class FactsListViewController: UIViewController {
         collectionController.onScrollDirectionChange = { [weak self] direction in
             self?.setSearchPanelHidden(direction == .down)
         }
-        collectionController.onShowStatus = { [weak self] in
-            self?.setSearchPanelHidden(false)
-        }
         collectionController.shouldUpdateAccessibilityFocus = { [weak self] in
             self?.searchController.searchBar.searchTextField.isFirstResponder == false
         }
@@ -93,6 +90,10 @@ final class FactsListViewController: UIViewController {
         view.addSubview(searchPanel)
         updateFilterButtons()
         setupConstraints()
+        collectionController.onSearchAvailabilityChange = { [weak self] canSearch in
+            self?.setSearchPanelHidden(!canSearch)
+        }
+        setSearchPanelHidden(!viewModel.canSearch)
         collectionController.didMove(toParent: self)
         setContentScrollView(collectionController.scrollView, for: .top)
         NotificationCenter.default.addObserver(
@@ -199,6 +200,7 @@ final class FactsListViewController: UIViewController {
     }
 
     private func setSearchPanelHidden(_ hidden: Bool) {
+        let hidden = hidden || !viewModel.canSearch
         guard isSearchPanelHidden != hidden else { return }
         isSearchPanelHidden = hidden
         searchPanel.isUserInteractionEnabled = !hidden
@@ -210,7 +212,7 @@ final class FactsListViewController: UIViewController {
             searchController.searchBar.text = viewModel.searchQuery
         }
 
-        let animated = !UIAccessibility.isReduceMotionEnabled
+        let animated = view.window != nil && !UIAccessibility.isReduceMotionEnabled
         updateSearchToolbar(animated: animated)
         let updateVisibility = {
             self.searchPanel.alpha = hidden ? 0 : 1
@@ -234,7 +236,7 @@ final class FactsListViewController: UIViewController {
     private func updateSearchToolbar(animated: Bool) {
         guard usesSearchToolbar else { return }
         navigationItem.searchController = isSearchPanelHidden ? nil : searchController
-        if navigationController?.topViewController === self {
+        if previousToolbarHidden != nil, navigationController?.topViewController === self {
             navigationController?.setToolbarHidden(isSearchPanelHidden, animated: animated)
         }
     }
@@ -362,6 +364,11 @@ extension FactsListViewController: UISearchBarDelegate {
     @available(iOS 26.0, *)
     #Preview("Loading") {
         makeFactsListViewControllerPreview(factsService: FactsServiceStub(fetchFactsResponse: .loading))
+    }
+
+    @available(iOS 26.0, *)
+    #Preview("Slow Internet · 2s") {
+        makeFactsListViewControllerPreview(factsService: FactsServiceStub(fetchFactsResponse: .slowInternet(CatFactFixtures.list)))
     }
 
     @available(iOS 26.0, *)
