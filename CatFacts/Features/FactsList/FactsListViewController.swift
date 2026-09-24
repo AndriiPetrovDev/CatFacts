@@ -19,8 +19,8 @@ final class FactsListViewController: UIViewController {
     private var isSearchPanelHidden = false
     private var keyboardOverlap: CGFloat = 0
     private var searchPanelBottomConstraint: Constraint?
-    private var searchPanelBottomInset: CGFloat = 8
-    private var searchToolbarBottomInset: CGFloat = 8
+    private var searchPanelBottomInset = AppLayout.spacing
+    private var searchToolbarBottomInset = AppLayout.spacing
     private var previousToolbarHidden: Bool?
 
     private var usesSearchToolbar: Bool {
@@ -50,7 +50,7 @@ final class FactsListViewController: UIViewController {
     private lazy var filterBar: UIStackView = {
         let stack = UIStackView(arrangedSubviews: filterButtons)
         stack.axis = .horizontal
-        stack.spacing = 8
+        stack.spacing = AppLayout.spacing
         stack.alignment = .center
         return stack
     }()
@@ -110,12 +110,12 @@ final class FactsListViewController: UIViewController {
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         let keyboardInset = max(0, keyboardOverlap - view.safeAreaInsets.bottom)
-        var panelBottomInset = 8 + keyboardInset
+        var panelBottomInset = AppLayout.spacing + keyboardInset
         if usesSearchToolbar, !isSearchPanelHidden,
            let window = view.window,
            searchController.searchBar.window === window {
             let searchFrame = searchController.searchBar.convert(searchController.searchBar.bounds, to: view)
-            searchToolbarBottomInset = max(8, view.safeAreaLayoutGuide.layoutFrame.maxY - searchFrame.minY + 8 - keyboardInset)
+            searchToolbarBottomInset = max(AppLayout.spacing, view.safeAreaLayoutGuide.layoutFrame.maxY - searchFrame.minY + AppLayout.spacing - keyboardInset)
         }
         if usesSearchToolbar, !isSearchPanelHidden {
             panelBottomInset = searchToolbarBottomInset + keyboardInset
@@ -124,7 +124,7 @@ final class FactsListViewController: UIViewController {
             searchPanelBottomInset = panelBottomInset
             searchPanelBottomConstraint?.update(offset: -panelBottomInset)
         }
-        let bottomInset = isSearchPanelHidden ? keyboardInset : searchPanel.bounds.height + panelBottomInset + 8
+        let bottomInset = isSearchPanelHidden ? keyboardInset : searchPanel.bounds.height + panelBottomInset + AppLayout.spacing
         collectionController.updateContentInsets(bottom: bottomInset)
     }
 
@@ -156,8 +156,8 @@ final class FactsListViewController: UIViewController {
         }
 
         searchPanel.snp.makeConstraints { make in
-            make.leading.trailing.equalTo(view.safeAreaLayoutGuide).inset(16)
-            searchPanelBottomConstraint = make.bottom.equalTo(view.safeAreaLayoutGuide).inset(8).constraint
+            make.leading.trailing.equalTo(view.safeAreaLayoutGuide).inset(AppLayout.horizontalInset)
+            searchPanelBottomConstraint = make.bottom.equalTo(view.safeAreaLayoutGuide).inset(AppLayout.spacing).constraint
         }
 
         filterBar.snp.makeConstraints { make in

@@ -2,12 +2,6 @@ import UIKit
 import SnapKit
 
 final class FactsListLegacyViewController: UIViewController {
-    private enum Layout {
-        static let horizontalInset: CGFloat = 20
-        static let searchFieldInset: CGFloat = 8
-        static let filtersBottomInset: CGFloat = 16
-    }
-
     private let viewModel: FactsListViewModel
     private lazy var collectionController = FactsListCollectionViewController(
         viewModel: viewModel,
@@ -51,7 +45,7 @@ final class FactsListLegacyViewController: UIViewController {
     private lazy var filterBar: UIStackView = {
         let stack = UIStackView(arrangedSubviews: filterButtons)
         stack.axis = .horizontal
-        stack.spacing = 8
+        stack.spacing = AppLayout.spacing
         stack.alignment = .center
         return stack
     }()
@@ -67,11 +61,11 @@ final class FactsListLegacyViewController: UIViewController {
         stack.axis = .vertical
         stack.isLayoutMarginsRelativeArrangement = true
         stack.insetsLayoutMarginsFromSafeArea = false
-        let inset = Layout.horizontalInset - Layout.searchFieldInset
+        let inset = AppLayout.horizontalInset - AppLayout.spacing
         stack.directionalLayoutMargins = NSDirectionalEdgeInsets(
             top: 0,
             leading: inset,
-            bottom: Layout.filtersBottomInset,
+            bottom: AppLayout.sectionSpacing,
             trailing: inset
         )
         return stack
@@ -149,7 +143,7 @@ final class FactsListLegacyViewController: UIViewController {
         searchBarHeight = max(44, searchBar.sizeThatFits(view.bounds.size).height)
         searchPanelHeight = searchBarHeight
             + filterBar.systemLayoutSizeFitting(UIView.layoutFittingCompressedSize).height
-            + Layout.filtersBottomInset
+            + AppLayout.sectionSpacing
 
         collectionController.view.snp.makeConstraints { make in
             make.edges.equalToSuperview()
@@ -170,8 +164,8 @@ final class FactsListLegacyViewController: UIViewController {
 
         filterBar.snp.makeConstraints { make in
             make.top.bottom.equalToSuperview()
-            make.leading.equalToSuperview().offset(Layout.searchFieldInset)
-            make.trailing.lessThanOrEqualToSuperview().inset(Layout.searchFieldInset)
+            make.leading.equalToSuperview().offset(AppLayout.spacing)
+            make.trailing.lessThanOrEqualToSuperview().inset(AppLayout.spacing)
         }
     }
 
@@ -259,7 +253,7 @@ final class FactsListLegacyViewController: UIViewController {
             button.titleLabel?.font = .preferredFont(forTextStyle: .body)
             button.backgroundColor = .systemGray5
             button.layer.cornerRadius = 8
-            button.contentEdgeInsets = UIEdgeInsets(top: 8, left: 12, bottom: 8, right: 12)
+            button.contentEdgeInsets = UIEdgeInsets(top: AppLayout.spacing, left: 12, bottom: AppLayout.spacing, right: 12)
             button.setImage(UIImage(systemName: "checkmark"), for: .selected)
             button.setPreferredSymbolConfiguration(UIImage.SymbolConfiguration(textStyle: .body), forImageIn: .selected)
         }

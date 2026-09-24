@@ -32,7 +32,7 @@ final class FactDetailsViewController: UIViewController {
     private lazy var contentStack: UIStackView = {
         let stack = UIStackView(arrangedSubviews: [titleLabel, textLabel, newStatusView, verifiedStatusView])
         stack.axis = .vertical
-        stack.spacing = 16
+        stack.spacing = AppLayout.sectionSpacing
         stack.setCustomSpacing(12, after: textLabel)
         return stack
     }()
@@ -71,7 +71,8 @@ final class FactDetailsViewController: UIViewController {
         }
 
         contentStack.snp.makeConstraints { make in
-            make.edges.equalToSuperview().inset(24)
+            make.leading.trailing.equalToSuperview().inset(AppLayout.horizontalInset)
+            make.top.bottom.equalToSuperview().inset(24)
         }
     }
 

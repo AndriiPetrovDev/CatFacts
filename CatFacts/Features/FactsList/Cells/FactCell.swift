@@ -25,7 +25,7 @@ final class FactCell: UICollectionViewListCell {
 
         contentView.addSubview(contentStack)
         contentStack.snp.makeConstraints { make in
-            make.edges.equalToSuperview().inset(16)
+            make.edges.equalToSuperview().inset(AppLayout.sectionSpacing)
         }
 
         isAccessibilityElement = true

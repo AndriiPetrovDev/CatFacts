@@ -87,7 +87,7 @@ final class FactsListCollectionViewController: UIViewController {
         let stack = UIStackView(arrangedSubviews: [activityIndicator, messageLabel, retryButton])
         stack.axis = .vertical
         stack.alignment = .center
-        stack.spacing = 16
+        stack.spacing = AppLayout.sectionSpacing
         stack.isHidden = true
         return stack
     }()
@@ -161,7 +161,7 @@ final class FactsListCollectionViewController: UIViewController {
 
         statusStack.snp.makeConstraints { make in
             make.centerY.equalTo(view.safeAreaLayoutGuide)
-            make.leading.trailing.equalTo(view.safeAreaLayoutGuide).inset(24)
+            make.leading.trailing.equalTo(view.safeAreaLayoutGuide).inset(AppLayout.horizontalInset)
         }
 
         messageLabel.snp.makeConstraints { make in
