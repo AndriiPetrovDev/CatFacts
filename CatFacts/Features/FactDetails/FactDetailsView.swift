@@ -16,6 +16,7 @@ final class FactDetailsView: UIView {
 
     private lazy var textLabel: UILabel = {
         let label = UILabel()
+        label.accessibilityIdentifier = "facts.details.text"
         label.font = .preferredFont(forTextStyle: .body)
         label.adjustsFontForContentSizeCategory = true
         label.numberOfLines = 0

@@ -19,11 +19,13 @@ final class FactStatusView: UIStackView {
 
         switch status {
         case .new:
+            accessibilityIdentifier = "fact.status.new"
             symbolName = "sparkles"
             symbolColor = .systemBlue
             textColor = .systemBlue
 
         case .verified:
+            accessibilityIdentifier = "fact.status.verified"
             symbolName = "checkmark.square.fill"
             symbolColor = .systemGreen
             textColor = .secondaryLabel

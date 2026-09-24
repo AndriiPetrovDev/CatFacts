@@ -21,6 +21,7 @@ final class FactsListLegacyViewController: UIViewController {
         let bar = UISearchBar()
         bar.delegate = self
         bar.placeholder = viewModel.localization[.searchPlaceholder]
+        bar.searchTextField.accessibilityIdentifier = "facts.search"
         bar.text = viewModel.searchQuery
         bar.autocapitalizationType = .none
         bar.autocorrectionType = .no
@@ -236,6 +237,7 @@ final class FactsListLegacyViewController: UIViewController {
 
     private func makeFilterButton(title: String, filter: FactsListViewModel.SearchFilter) -> UIButton {
         let button = UIButton(type: .system)
+        button.accessibilityIdentifier = filter == .verified ? "facts.filter.verified" : "facts.filter.new"
         button.tag = filter.rawValue
         button.setTitle(title, for: .normal)
         button.titleLabel?.adjustsFontForContentSizeCategory = true

@@ -23,6 +23,7 @@ final class FactsListViewController: UIViewController {
         controller.hidesNavigationBarDuringPresentation = false
         controller.searchBar.delegate = self
         controller.searchBar.placeholder = viewModel.localization[.searchPlaceholder]
+        controller.searchBar.searchTextField.accessibilityIdentifier = "facts.search"
         controller.searchBar.text = viewModel.searchQuery
         controller.searchBar.autocapitalizationType = .none
         controller.searchBar.autocorrectionType = .no
@@ -170,6 +171,7 @@ final class FactsListViewController: UIViewController {
 
     private func makeFilterButton(title: String, filter: FactsListViewModel.SearchFilter) -> UIButton {
         let button = UIButton(type: .system)
+        button.accessibilityIdentifier = filter == .verified ? "facts.filter.verified" : "facts.filter.new"
         button.tag = filter.rawValue
         button.setTitle(title, for: .normal)
         button.titleLabel?.adjustsFontForContentSizeCategory = true

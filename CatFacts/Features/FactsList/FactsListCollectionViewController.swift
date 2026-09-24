@@ -27,6 +27,7 @@ final class FactsListCollectionViewController: UIViewController {
     private lazy var dataSource: UICollectionViewDiffableDataSource<Section, CatFact.ID> = {
         let viewModel = viewModel
         let registration = UICollectionView.CellRegistration<FactCell, CatFact> { cell, _, fact in
+            cell.accessibilityIdentifier = "facts.item.\(fact.id)"
             cell.configure(
                 text: fact.text,
                 isVerified: fact.isVerified,
@@ -46,6 +47,7 @@ final class FactsListCollectionViewController: UIViewController {
         let configuration = UICollectionLayoutListConfiguration(appearance: .insetGrouped)
         let layout = UICollectionViewCompositionalLayout.list(using: configuration)
         let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
+        collectionView.accessibilityIdentifier = "facts.list"
         collectionView.backgroundColor = .systemGroupedBackground
         collectionView.alwaysBounceVertical = true
         collectionView.keyboardDismissMode = .onDrag
@@ -61,6 +63,7 @@ final class FactsListCollectionViewController: UIViewController {
 
     private lazy var messageLabel: UILabel = {
         let label = UILabel()
+        label.accessibilityIdentifier = "facts.message"
         label.font = .preferredFont(forTextStyle: .body)
         label.adjustsFontForContentSizeCategory = true
         label.textColor = .secondaryLabel
@@ -71,6 +74,7 @@ final class FactsListCollectionViewController: UIViewController {
 
     private lazy var retryButton: UIButton = {
         let button = UIButton(type: .system)
+        button.accessibilityIdentifier = "facts.retry"
         button.setTitle(viewModel.localization[.retry], for: .normal)
         button.accessibilityHint = viewModel.localization[.retryHint]
         button.titleLabel?.font = .preferredFont(forTextStyle: .body)

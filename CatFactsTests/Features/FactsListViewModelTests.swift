@@ -1,8 +1,8 @@
 import XCTest
 @testable import CatFacts
 
+@MainActor
 final class FactsListViewModelTests: XCTestCase {
-    @MainActor
     func testLoadsServiceFactsAndNotifiesScreen() async {
         let facts = [makeFact(id: "first"), makeFact(id: "second")]
         let service = SequentialFactsServiceStub(responses: [.success(facts)])
@@ -18,7 +18,6 @@ final class FactsListViewModelTests: XCTestCase {
         XCTAssertEqual(requestCount, 1)
     }
 
-    @MainActor
     func testEmptyResponseProducesLoadedEmptyList() async {
         let service = SequentialFactsServiceStub(responses: [.success([])])
         let viewModel = FactsListViewModel(factsService: service)
@@ -29,7 +28,6 @@ final class FactsListViewModelTests: XCTestCase {
         XCTAssertTrue(viewModel.items.isEmpty)
     }
 
-    @MainActor
     func testCanRetryAfterNetworkFailure() async {
         let facts = [makeFact(id: "first")]
         let service = SequentialFactsServiceStub(responses: [
@@ -54,7 +52,6 @@ final class FactsListViewModelTests: XCTestCase {
         XCTAssertEqual(requestCount, 2)
     }
 
-    @MainActor
     func testCancellationRestoresPreviouslyLoadedFacts() async {
         let facts = [makeFact(id: "first")]
         let service = SequentialFactsServiceStub(responses: [.success(facts), .failure(CancellationError())])
@@ -68,9 +65,9 @@ final class FactsListViewModelTests: XCTestCase {
     }
 
     #if DEBUG
-        @MainActor
         func testStubServiceFailureReachesScreenAndCanBeRetried() async {
-            let service = FactsServiceStub(fetchFactsResponse: .failure(.httpStatus(503)))
+            let facts = [makeFact(id: "recovered")]
+            let service = FactsServiceStub(fetchFactsResponses: [.failure(.httpStatus(503)), .success(facts)])
             let dependencies = PreviewAppDependencies(factsService: service)
             let viewModel = FactsListViewModel(factsService: dependencies.factsService, localization: Localization(languageCode: "en"))
             var states: [FactsListViewModel.State] = []
@@ -80,13 +77,12 @@ final class FactsListViewModelTests: XCTestCase {
             await viewModel.loadFacts()
 
             let errorState = FactsListViewModel.State.failed("The server is temporarily unavailable. Please try again.")
-            XCTAssertEqual(states, [.loading, errorState, .loading, errorState])
-            XCTAssertEqual(viewModel.state, errorState)
-            XCTAssertTrue(viewModel.items.isEmpty)
+            XCTAssertEqual(states, [.loading, errorState, .loading, .loaded])
+            XCTAssertEqual(viewModel.state, .loaded)
+            XCTAssertEqual(viewModel.items, facts)
         }
     #endif
 
-    @MainActor
     func testMapsErrorsToDistinctUserFacingMessages() async {
         let cases: [(error: Error, message: String)] = [
             (HTTPClientError.transport(.notConnectedToInternet), "You're offline. Check your internet connection and try again."),
@@ -108,7 +104,6 @@ final class FactsListViewModelTests: XCTestCase {
         }
     }
 
-    @MainActor
     func testErrorMessageUsesInjectedLanguage() async {
         let service = SequentialFactsServiceStub(responses: [.failure(HTTPClientError.transport(.notConnectedToInternet))])
         let viewModel = FactsListViewModel(factsService: service, localization: Localization(languageCode: "ru"))
@@ -118,7 +113,6 @@ final class FactsListViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.state, .failed("Нет подключения к интернету. Проверьте соединение и попробуйте снова."))
     }
 
-    @MainActor
     func testDuplicateIDsKeepFirstOccurrenceAndPreserveOrder() async {
         let first = makeFact(id: "first")
         let second = makeFact(id: "second")
@@ -140,7 +134,6 @@ final class FactsListViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.fact(withID: first.id), first)
     }
 
-    @MainActor
     func testSelectsFullFactByIDWhenTextsAreIdentical() async {
         let first = makeFact(id: "first")
         let second = makeFact(id: "second")
@@ -156,7 +149,6 @@ final class FactsListViewModelTests: XCTestCase {
         XCTAssertEqual(selections, [second])
     }
 
-    @MainActor
     func testSearchMatchesSubstringsIgnoringCaseAndTrimsWhitespace() async {
         let facts = [
             makeFact(id: "first", text: "Cats purr when content."),
@@ -187,7 +179,6 @@ final class FactsListViewModelTests: XCTestCase {
         }
     }
 
-    @MainActor
     func testSearchAndFiltersRequireAllActiveCriteria() async {
         let facts = makeSearchFacts()
         let cases: [(query: String, filters: [FactsListViewModel.SearchFilter], expectedIDs: [String])] = [
@@ -222,7 +213,6 @@ final class FactsListViewModelTests: XCTestCase {
         }
     }
 
-    @MainActor
     func testChangingAndClearingSearchPreservesFiltersUntilTheyAreToggledOff() async {
         let facts = makeSearchFacts()
         let service = SequentialFactsServiceStub(responses: [.success(facts)])
@@ -250,7 +240,6 @@ final class FactsListViewModelTests: XCTestCase {
         XCTAssertFalse(viewModel.hasActiveFilters)
     }
 
-    @MainActor
     func testSearchAndFilterChangesNotifyScreenWithoutFetchingAgain() async {
         let service = SequentialFactsServiceStub(responses: [.success(makeSearchFacts())])
         let viewModel = FactsListViewModel(factsService: service)

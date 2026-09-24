@@ -59,6 +59,8 @@ Xcode Previews cover the list and details, both UI variants, loading, empty and 
 
 Unit tests exercise decoding, date boundaries, transport errors, state transitions, retry, search and filter combinations, error-message mapping, and completeness of localized resources. Injected services and a custom `URLProtocol` keep these tests independent of the live API.
 
+UI tests cover search with filters, navigation to details and back, clearing empty search results, recovery after an offline error, and search-panel auto-hide. A separate `CatFactsUITestHost` target shares the app's screens and navigation and reuses `FactsServiceStub` for deterministic data, keeping test setup out of the app's startup code. Run `CatFactsUITests` using the `CatFacts` scheme on iPhone simulators with iOS 18 and iOS 26 to check both presentations.
+
 ## Current gaps
 
-UI tests still contain the skeleton launch checks. The freshness rule currently also marks future-dated facts as new. These remain explicit follow-up items rather than claims of complete production readiness.
+The freshness rule currently also marks future-dated facts as new.
