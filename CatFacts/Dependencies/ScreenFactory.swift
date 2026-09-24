@@ -11,7 +11,10 @@ final class ScreenFactory: ScreenFactoryProtocol {
     func makeFactsList(onSelectFact: @escaping (CatFact) -> Void) -> UIViewController {
         let viewModel = FactsListViewModel(factsService: dependencies.factsService)
         viewModel.onSelectFact = onSelectFact
-        return FactsListViewController(viewModel: viewModel)
+        if #available(iOS 26.0, *) {
+            return FactsListViewController(viewModel: viewModel)
+        }
+        return FactsListLegacyViewController(viewModel: viewModel)
     }
 
     func makeFactDetails(fact: CatFact) -> UIViewController {

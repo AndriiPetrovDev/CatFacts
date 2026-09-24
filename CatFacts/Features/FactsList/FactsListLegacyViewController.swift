@@ -1,21 +1,15 @@
 import UIKit
 import SnapKit
 
-@available(iOS 26.0, *)
-final class FactsListViewController: UIViewController {
+final class FactsListLegacyViewController: UIViewController {
     private let viewModel: FactsListViewModel
     private lazy var collectionController = FactsListCollectionViewController(viewModel: viewModel)
+    private var isScreenVisible = false
     private var isSearchPanelHidden = false
+    private var isTopSearchExpanding = false
+    private var topSearchTransitionID = 0
     private var keyboardOverlap: CGFloat = 0
-    private var searchPanelBottomConstraint: Constraint?
-    private var searchPanelBottomInset: CGFloat = 8
-    private var searchToolbarBottomInset: CGFloat = 8
-    private var previousToolbarHidden: Bool?
-    private weak var searchToolbarContentView: UIView?
-
-    private var usesSearchToolbar: Bool {
-        traitCollection.userInterfaceIdiom == .phone
-    }
+    private var searchPanelTopConstraint: NSLayoutConstraint?
 
     private lazy var searchController: UISearchController = {
         let controller = UISearchController(searchResultsController: nil)
@@ -47,12 +41,12 @@ final class FactsListViewController: UIViewController {
 
     private lazy var searchPanel: UIStackView = {
         let stack = UIStackView(arrangedSubviews: [filterBar])
-        if !usesSearchToolbar {
-            stack.addArrangedSubview(searchController.searchBar)
-        }
         stack.axis = .vertical
         stack.alignment = .leading
         stack.spacing = 12
+        stack.backgroundColor = .systemGroupedBackground
+        stack.isLayoutMarginsRelativeArrangement = true
+        stack.directionalLayoutMargins = NSDirectionalEdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16)
         return stack
     }()
 
@@ -75,17 +69,20 @@ final class FactsListViewController: UIViewController {
         navigationItem.largeTitleDisplayMode = .always
         definesPresentationContext = true
         view.backgroundColor = .systemGroupedBackground
-        if usesSearchToolbar {
-            navigationItem.searchController = searchController
-            navigationItem.preferredSearchBarPlacement = .integrated
-            navigationItem.searchBarPlacementAllowsToolbarIntegration = true
-            toolbarItems = [navigationItem.searchBarPlacementBarButtonItem]
+        navigationItem.searchController = searchController
+        navigationItem.hidesSearchBarWhenScrolling = false
+        if #available(iOS 16.0, *) {
+            navigationItem.preferredSearchBarPlacement = .stacked
+        }
+        collectionController.onScroll = { [weak self] in
+            self?.updateTopSearchVisibility()
         }
         collectionController.onScrollDirectionChange = { [weak self] direction in
-            self?.setSearchPanelHidden(direction == .down)
+            self?.setTopSearchCollapsed(direction == .down)
         }
         collectionController.onShowStatus = { [weak self] in
-            self?.setSearchPanelHidden(false)
+            self?.setTopSearchCollapsed(false)
+            self?.updateTopSearchVisibility()
         }
         collectionController.shouldUpdateAccessibilityFocus = { [weak self] in
             self?.searchController.searchBar.searchTextField.isFirstResponder == false
@@ -96,7 +93,9 @@ final class FactsListViewController: UIViewController {
         updateFilterButtons()
         setupConstraints()
         collectionController.didMove(toParent: self)
-        setContentScrollView(collectionController.scrollView, for: .top)
+        if #available(iOS 15.0, *) {
+            setContentScrollView(collectionController.scrollView, for: .top)
+        }
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(keyboardFrameDidChange(_:)),
@@ -108,61 +107,32 @@ final class FactsListViewController: UIViewController {
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         let keyboardInset = max(0, keyboardOverlap - view.safeAreaInsets.bottom)
-        var panelBottomInset = 8 + keyboardInset
-        if usesSearchToolbar, !isSearchPanelHidden,
-           let window = view.window,
-           searchController.searchBar.window === window {
-            let searchFrame = searchController.searchBar.convert(searchController.searchBar.bounds, to: view)
-            searchToolbarBottomInset = max(8, view.safeAreaLayoutGuide.layoutFrame.maxY - searchFrame.minY + 8 - keyboardInset)
-        }
-        if usesSearchToolbar {
-            panelBottomInset = searchToolbarBottomInset + keyboardInset
-        }
-        if abs(searchPanelBottomInset - panelBottomInset) > 0.5 {
-            searchPanelBottomInset = panelBottomInset
-            searchPanelBottomConstraint?.update(offset: -panelBottomInset)
-        }
-        collectionController.updateContentInsets(bottom: searchPanel.bounds.height + panelBottomInset + 8)
+        updateSearchPanelTopConstraint()
+        collectionController.updateContentInsets(top: searchPanel.bounds.height, bottom: keyboardInset)
+        updateTopSearchVisibility()
     }
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        let searchInput = searchController.searchBar
+        let searchInput = searchController.searchBar.searchTextField
         searchInput.isUserInteractionEnabled = !isSearchPanelHidden
         searchInput.accessibilityElementsHidden = isSearchPanelHidden
-        if usesSearchToolbar, let navigationController {
-            if previousToolbarHidden == nil {
-                previousToolbarHidden = navigationController.isToolbarHidden
-            }
-            navigationController.setToolbarHidden(false, animated: animated)
-            navigationController.toolbar.alpha = 1
-            navigationController.toolbar.isUserInteractionEnabled = !isSearchPanelHidden
-            navigationController.toolbar.accessibilityElementsHidden = isSearchPanelHidden
-        }
         setSearchPanelAlpha(isSearchPanelHidden ? 0 : 1)
     }
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         setSearchPanelAlpha(isSearchPanelHidden ? 0 : 1)
+        isScreenVisible = true
+        updateTopSearchVisibility()
     }
 
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
+        isScreenVisible = false
+        searchPanelTopConstraint?.isActive = false
         if isMovingFromParent || navigationController?.topViewController !== self {
             searchController.searchBar.resignFirstResponder()
-        }
-        if usesSearchToolbar,
-           let navigationController,
-           navigationController.topViewController !== self,
-           let previousToolbarHidden {
-            searchToolbarContentView?.alpha = 1
-            searchToolbarContentView = nil
-            navigationController.toolbar.alpha = 1
-            navigationController.toolbar.isUserInteractionEnabled = true
-            navigationController.toolbar.accessibilityElementsHidden = false
-            navigationController.setToolbarHidden(previousToolbarHidden, animated: animated)
-            self.previousToolbarHidden = nil
         }
     }
 
@@ -172,17 +142,92 @@ final class FactsListViewController: UIViewController {
         }
 
         searchPanel.snp.makeConstraints { make in
-            make.leading.trailing.equalTo(view.safeAreaLayoutGuide).inset(16)
-            searchPanelBottomConstraint = make.bottom.equalTo(view.safeAreaLayoutGuide).inset(8).constraint
+            make.leading.trailing.equalTo(view.safeAreaLayoutGuide)
+            make.top.equalTo(view.safeAreaLayoutGuide).priority(.low)
         }
 
         filterBar.snp.makeConstraints { make in
-            make.width.lessThanOrEqualTo(searchPanel)
+            make.width.lessThanOrEqualTo(searchPanel.layoutMarginsGuide)
+        }
+    }
+
+    private func updateSearchPanelTopConstraint() {
+        let searchBar = searchController.searchBar
+        guard navigationItem.searchController === searchController,
+              navigationController?.topViewController === self,
+              let window = view.window,
+              searchBar.window === window else {
+            searchPanelTopConstraint?.isActive = false
+            return
         }
 
-        if !usesSearchToolbar {
-            searchController.searchBar.snp.makeConstraints { make in
-                make.width.equalTo(searchPanel)
+        // UIKit attaches the search bar to the navigation hierarchy after viewDidLoad.
+        if searchPanelTopConstraint == nil {
+            searchPanelTopConstraint = searchPanel.topAnchor.constraint(equalTo: searchBar.bottomAnchor)
+        }
+        searchPanelTopConstraint?.isActive = true
+    }
+
+    private func updateTopSearchVisibility() {
+        guard isScreenVisible else { return }
+        let searchBar = searchController.searchBar
+        guard let window = view.window,
+              searchBar.window === window,
+              !searchBar.bounds.isEmpty else {
+            setSearchPanelHidden(true)
+            return
+        }
+
+        let searchFrame = searchBar.convert(searchBar.bounds, to: window)
+        let field = searchBar.searchTextField
+        let fullFrame = searchFrame.union(field.convert(field.bounds, to: window))
+        var visibleFrame = fullFrame.intersection(searchFrame).intersection(window.bounds)
+        var ancestor = searchBar.superview
+        while let parent = ancestor {
+            if parent.clipsToBounds || parent === navigationController?.navigationBar {
+                visibleFrame = visibleFrame.intersection(parent.convert(parent.bounds, to: window))
+            }
+            ancestor = parent.superview
+        }
+
+        let tolerance = 1 / window.screen.scale
+        let isFullyExpanded = !isTopSearchExpanding
+            && !visibleFrame.isNull
+            && visibleFrame.height >= fullFrame.height - tolerance
+            && visibleFrame.width >= fullFrame.width - tolerance
+        setSearchPanelHidden(!isFullyExpanded)
+    }
+
+    private func setTopSearchCollapsed(_ collapsed: Bool) {
+        guard navigationItem.hidesSearchBarWhenScrolling != collapsed else { return }
+        topSearchTransitionID += 1
+        let transitionID = topSearchTransitionID
+        isTopSearchExpanding = !collapsed && isSearchPanelHidden
+        if collapsed {
+            searchController.searchBar.resignFirstResponder()
+            searchController.isActive = false
+        }
+
+        let updateLayout = {
+            self.navigationItem.hidesSearchBarWhenScrolling = collapsed
+            self.navigationController?.view.layoutIfNeeded()
+        }
+        let finishTransition = { [weak self] in
+            guard let self, self.topSearchTransitionID == transitionID else { return }
+            self.isTopSearchExpanding = false
+            self.updateTopSearchVisibility()
+        }
+        if UIAccessibility.isReduceMotionEnabled {
+            UIView.performWithoutAnimation(updateLayout)
+            finishTransition()
+        } else {
+            UIView.animate(
+                withDuration: 0.25,
+                delay: 0,
+                options: [.beginFromCurrentState, .allowUserInteraction, .curveEaseInOut],
+                animations: updateLayout
+            ) { _ in
+                finishTransition()
             }
         }
     }
@@ -192,13 +237,25 @@ final class FactsListViewController: UIViewController {
         button.tag = filter.rawValue
         button.setTitle(title, for: .normal)
         button.titleLabel?.adjustsFontForContentSizeCategory = true
-        button.configuration = .tinted()
-        button.configurationUpdateHandler = { button in
-            var configuration: UIButton.Configuration = button.isSelected ? .prominentGlass() : .glass()
-            configuration.cornerStyle = .capsule
-            configuration.title = title
-            configuration.buttonSize = .medium
-            button.configuration = configuration
+
+        if #available(iOS 15.0, *) {
+            button.configuration = .tinted()
+            button.configurationUpdateHandler = { button in
+                var configuration = UIButton.Configuration.filled()
+                configuration.baseBackgroundColor = button.isSelected ? button.tintColor : .systemGray5
+                configuration.baseForegroundColor = button.isSelected ? .white : .label
+                configuration.cornerStyle = .medium
+                configuration.title = title
+                configuration.buttonSize = .medium
+                button.configuration = configuration
+            }
+        } else {
+            button.titleLabel?.font = .preferredFont(forTextStyle: .body)
+            button.backgroundColor = .systemGray5
+            button.layer.cornerRadius = 8
+            button.contentEdgeInsets = UIEdgeInsets(top: 8, left: 12, bottom: 8, right: 12)
+            button.setImage(UIImage(systemName: "checkmark"), for: .selected)
+            button.setPreferredSymbolConfiguration(UIImage.SymbolConfiguration(textStyle: .body), forImageIn: .selected)
         }
 
         button.addAction(UIAction { [weak self] _ in
@@ -214,7 +271,12 @@ final class FactsListViewController: UIViewController {
             guard let filter = FactsListViewModel.SearchFilter(rawValue: button.tag) else { continue }
             button.isSelected = viewModel.searchFilters.contains(filter)
             button.accessibilityTraits = button.isSelected ? [.button, .selected] : [.button]
-            button.setNeedsUpdateConfiguration()
+            if #available(iOS 15.0, *) {
+                button.setNeedsUpdateConfiguration()
+            } else {
+                button.backgroundColor = button.isSelected ? .systemBlue : .systemGray5
+                button.tintColor = button.isSelected ? .white : .label
+            }
         }
     }
 
@@ -223,15 +285,9 @@ final class FactsListViewController: UIViewController {
         isSearchPanelHidden = hidden
         searchPanel.isUserInteractionEnabled = !hidden
         searchPanel.accessibilityElementsHidden = hidden
-        let searchBar = searchController.searchBar
-        searchBar.isUserInteractionEnabled = !hidden
-        searchBar.accessibilityElementsHidden = hidden
-        let toolbar = usesSearchToolbar ? navigationController?.toolbar : nil
-        toolbar?.isUserInteractionEnabled = !hidden
-        toolbar?.accessibilityElementsHidden = hidden
-        if hidden {
-            searchBar.resignFirstResponder()
-        }
+        let searchInput = searchController.searchBar.searchTextField
+        searchInput.isUserInteractionEnabled = !hidden
+        searchInput.accessibilityElementsHidden = hidden
 
         let updateVisibility = {
             self.setSearchPanelAlpha(hidden ? 0 : 1)
@@ -252,27 +308,7 @@ final class FactsListViewController: UIViewController {
 
     private func setSearchPanelAlpha(_ alpha: CGFloat) {
         searchPanel.alpha = alpha
-        if usesSearchToolbar {
-            let container = searchToolbarContainer()
-            if searchToolbarContentView !== container {
-                searchToolbarContentView?.alpha = 1
-                searchToolbarContentView = container
-            }
-            container.alpha = alpha
-        }
-    }
-
-    private func searchToolbarContainer() -> UIView {
-        var container: UIView = searchController.searchBar.searchTextField
-        // Integrated search renders its field and glass in a separate UIKit container.
-        while let parent = container.superview,
-              !(parent is UIWindow),
-              parent !== view,
-              !view.isDescendant(of: parent),
-              navigationController?.navigationBar.isDescendant(of: parent) != true {
-            container = parent
-        }
-        return container
+        searchController.searchBar.searchTextField.alpha = alpha
     }
 
     @objc private func keyboardFrameDidChange(_ notification: Notification) {
@@ -293,37 +329,34 @@ final class FactsListViewController: UIViewController {
     }
 }
 
-@available(iOS 26.0, *)
-extension FactsListViewController: UISearchResultsUpdating {
+extension FactsListLegacyViewController: UISearchResultsUpdating {
     func updateSearchResults(for searchController: UISearchController) {
         viewModel.updateSearchQuery(searchController.searchBar.text ?? "")
     }
 }
 
-@available(iOS 26.0, *)
-extension FactsListViewController: UISearchControllerDelegate {
+extension FactsListLegacyViewController: UISearchControllerDelegate {
     func willPresentSearchController(_ searchController: UISearchController) {
-        setSearchPanelHidden(false)
+        setTopSearchCollapsed(false)
     }
 }
 
-@available(iOS 26.0, *)
-extension FactsListViewController: UISearchBarDelegate {
+extension FactsListLegacyViewController: UISearchBarDelegate {
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
         searchBar.resignFirstResponder()
     }
 }
 
 #if DEBUG
-    @available(iOS 26.0, *)
+    @available(iOS 17.0, *)
     @MainActor
-    private func makeFactsListViewControllerPreview(
+    private func makeFactsListLegacyViewControllerPreview(
         factsService: FactsServiceStub = FactsServiceStub(fetchFactsResponse: .success(CatFactFixtures.list)),
         style: UIUserInterfaceStyle = .light,
         contentSize: UIContentSizeCategory = .large
     ) -> UINavigationController {
         let viewModel = FactsListViewModel(factsService: factsService)
-        let controller = FactsListViewController(viewModel: viewModel)
+        let controller = FactsListLegacyViewController(viewModel: viewModel)
         let navigationController = UINavigationController(rootViewController: controller)
         navigationController.navigationBar.prefersLargeTitles = true
         navigationController.traitOverrides.userInterfaceStyle = style
@@ -331,38 +364,38 @@ extension FactsListViewController: UISearchBarDelegate {
         return navigationController
     }
 
-    @available(iOS 26.0, *)
+    @available(iOS 17.0, *)
     #Preview("Loaded · Light · Default") {
-        makeFactsListViewControllerPreview()
+        makeFactsListLegacyViewControllerPreview()
     }
 
-    @available(iOS 26.0, *)
+    @available(iOS 17.0, *)
     #Preview("Failed") {
-        makeFactsListViewControllerPreview(factsService: FactsServiceStub(fetchFactsResponse: .failure(.httpStatus(503))))
+        makeFactsListLegacyViewControllerPreview(factsService: FactsServiceStub(fetchFactsResponse: .failure(.httpStatus(503))))
     }
 
-    @available(iOS 26.0, *)
+    @available(iOS 17.0, *)
     #Preview("Empty") {
-        makeFactsListViewControllerPreview(factsService: FactsServiceStub(fetchFactsResponse: .success([])))
+        makeFactsListLegacyViewControllerPreview(factsService: FactsServiceStub(fetchFactsResponse: .success([])))
     }
 
-    @available(iOS 26.0, *)
+    @available(iOS 17.0, *)
     #Preview("Loading") {
-        makeFactsListViewControllerPreview(factsService: FactsServiceStub(fetchFactsResponse: .loading))
+        makeFactsListLegacyViewControllerPreview(factsService: FactsServiceStub(fetchFactsResponse: .loading))
     }
 
-    @available(iOS 26.0, *)
+    @available(iOS 17.0, *)
     #Preview("Loaded · Light · XXXL") {
-        makeFactsListViewControllerPreview(contentSize: .extraExtraExtraLarge)
+        makeFactsListLegacyViewControllerPreview(contentSize: .extraExtraExtraLarge)
     }
 
-    @available(iOS 26.0, *)
+    @available(iOS 17.0, *)
     #Preview("Loaded · Light · Accessibility XXXL") {
-        makeFactsListViewControllerPreview(contentSize: .accessibilityExtraExtraExtraLarge)
+        makeFactsListLegacyViewControllerPreview(contentSize: .accessibilityExtraExtraExtraLarge)
     }
 
-    @available(iOS 26.0, *)
+    @available(iOS 17.0, *)
     #Preview("Loaded · Dark · Default") {
-        makeFactsListViewControllerPreview(style: .dark)
+        makeFactsListLegacyViewControllerPreview(style: .dark)
     }
 #endif

@@ -22,6 +22,8 @@
 		52E7EF3910AB3D903D706E8D /* FactsListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 540DA5E9AE645AA09FBD31D1 /* FactsListViewModel.swift */; };
 		5384ACCCDD0A26C35A979A9C /* FactsServiceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC8E896F78FC5B6B4129BB2C /* FactsServiceProtocol.swift */; };
 		722BC311EEB4AA6E5C60EC3A /* FactsListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE86A26FC1ADBB677AE0C728 /* FactsListViewController.swift */; };
+		8C95009653714DCF92638A01 /* FactsListCollectionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C95009653714DCF92638A02 /* FactsListCollectionViewController.swift */; };
+		8C95009653714DCF92638A03 /* FactsListLegacyViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C95009653714DCF92638A04 /* FactsListLegacyViewController.swift */; };
 		8411AC9D8143E90F73DE060A /* HTTPClientError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19D0999FE693702787BE08D7 /* HTTPClientError.swift */; };
 		88CFD40226136D370090B26A /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88CFD40126136D370090B26A /* AppDelegate.swift */; };
 		88CFD40426136D370090B26A /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88CFD40326136D370090B26A /* SceneDelegate.swift */; };
@@ -105,6 +107,8 @@
 		E292C1136A024EDBB7E617E0 /* CatFactTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CatFactTests.swift; sourceTree = "<group>"; };
 		FA8160D309B9CEBA688A2A13 /* AppEnvironment.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AppEnvironment.swift; sourceTree = "<group>"; };
 		FE86A26FC1ADBB677AE0C728 /* FactsListViewController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = FactsListViewController.swift; sourceTree = "<group>"; };
+		8C95009653714DCF92638A02 /* FactsListCollectionViewController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = FactsListCollectionViewController.swift; sourceTree = "<group>"; };
+		8C95009653714DCF92638A04 /* FactsListLegacyViewController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = FactsListLegacyViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -377,6 +381,8 @@
 				6EE5915757369D949319A849 /* Cells */,
 				540DA5E9AE645AA09FBD31D1 /* FactsListViewModel.swift */,
 				FE86A26FC1ADBB677AE0C728 /* FactsListViewController.swift */,
+				8C95009653714DCF92638A02 /* FactsListCollectionViewController.swift */,
+				8C95009653714DCF92638A04 /* FactsListLegacyViewController.swift */,
 			);
 			name = FactsList;
 			path = FactsList;
@@ -529,6 +535,8 @@
 				F2BD28D6AEB6207BB9DDE5CE /* AppCoordinator.swift in Sources */,
 				52E7EF3910AB3D903D706E8D /* FactsListViewModel.swift in Sources */,
 				722BC311EEB4AA6E5C60EC3A /* FactsListViewController.swift in Sources */,
+				8C95009653714DCF92638A01 /* FactsListCollectionViewController.swift in Sources */,
+				8C95009653714DCF92638A03 /* FactsListLegacyViewController.swift in Sources */,
 				E7EF31758CE9868B1E224006 /* FactCell.swift in Sources */,
 				B64C5D825F4C94E2427AD6CE /* FactDetailsViewModel.swift in Sources */,
 				9A8DA7275D793ECDF414140E /* FactDetailsViewController.swift in Sources */,
