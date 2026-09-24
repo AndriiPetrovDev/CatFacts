@@ -20,7 +20,7 @@ final class FactsListLegacyViewController: UIViewController {
     private lazy var searchBar: UISearchBar = {
         let bar = UISearchBar()
         bar.delegate = self
-        bar.placeholder = viewModel.localization[.searchPlaceholder]
+        bar.placeholder = String(localized: "search.placeholder")
         bar.searchTextField.accessibilityIdentifier = "facts.search"
         bar.text = viewModel.searchQuery
         bar.autocapitalizationType = .none
@@ -30,8 +30,8 @@ final class FactsListLegacyViewController: UIViewController {
     }()
 
     private lazy var filterButtons = [
-        makeFilterButton(title: viewModel.localization[.verified], filter: .verified),
-        makeFilterButton(title: viewModel.localization[.new], filter: .new)
+        makeFilterButton(title: String(localized: "status.verified"), filter: .verified),
+        makeFilterButton(title: String(localized: "status.new"), filter: .new)
     ]
 
     private lazy var filterBar: UIStackView = {
@@ -86,7 +86,7 @@ final class FactsListLegacyViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        title = viewModel.localization[.factsTitle]
+        title = String(localized: "facts.title")
         navigationItem.largeTitleDisplayMode = .always
         view.backgroundColor = .systemGroupedBackground
 
@@ -341,10 +341,9 @@ extension FactsListLegacyViewController: UISearchBarDelegate {
     private func makeFactsListLegacyViewControllerPreview(
         factsService: FactsServiceStub = FactsServiceStub(fetchFactsResponse: .success(CatFactFixtures.list)),
         style: UIUserInterfaceStyle = .light,
-        contentSize: UIContentSizeCategory = .large,
-        localization: Localization = Localization()
+        contentSize: UIContentSizeCategory = .large
     ) -> UINavigationController {
-        let viewModel = FactsListViewModel(factsService: factsService, localization: localization)
+        let viewModel = FactsListViewModel(factsService: factsService)
         let controller = FactsListLegacyViewController(viewModel: viewModel)
         let navigationController = UINavigationController(rootViewController: controller)
         navigationController.navigationBar.prefersLargeTitles = true
@@ -381,23 +380,6 @@ extension FactsListLegacyViewController: UISearchBarDelegate {
     @available(iOS 17.0, *)
     #Preview("Error · Generic") {
         makeFactsListLegacyViewControllerPreview(factsService: FactsServiceStub(fetchFactsResponse: .failure(.invalidResponse)))
-    }
-
-    @available(iOS 17.0, *)
-    #Preview("Languages · iOS 18 UI") {
-        LocalizedPreview { localization in
-            makeFactsListLegacyViewControllerPreview(localization: localization)
-        }
-    }
-
-    @available(iOS 17.0, *)
-    #Preview("Languages · Offline") {
-        LocalizedPreview { localization in
-            makeFactsListLegacyViewControllerPreview(
-                factsService: FactsServiceStub(fetchFactsResponse: .failure(.transport(.notConnectedToInternet))),
-                localization: localization
-            )
-        }
     }
 
     @available(iOS 17.0, *)

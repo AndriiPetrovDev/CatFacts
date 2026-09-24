@@ -61,11 +61,9 @@ final class FactDetailsView: UIView {
         nil
     }
 
-    func configure(title: String, text: String, isVerified: Bool, isNew: Bool, localization: Localization = Localization()) {
+    func configure(title: String, text: String, isVerified: Bool, isNew: Bool) {
         titleLabel.text = title
         textLabel.text = text
-        newStatusView.localize(using: localization)
-        verifiedStatusView.localize(using: localization)
         newStatusView.isHidden = !isNew
         verifiedStatusView.isHidden = !isVerified
 
@@ -89,7 +87,7 @@ final class FactDetailsView: UIView {
         view.traitOverrides.userInterfaceStyle = style
         view.traitOverrides.preferredContentSizeCategory = contentSize
         view.configure(
-            title: Localization()[.factTitle],
+            title: String(localized: "fact.title"),
             text: fact.text,
             isVerified: fact.isVerified,
             isNew: fact.isNew

@@ -40,14 +40,11 @@ final class FactsListViewModel {
     var onStateChange: ((State) -> Void)?
     var onSelectFact: ((CatFact) -> Void)?
 
-    let localization: Localization
-
     private let factsService: any FactsServiceProtocol
     private var facts: [CatFact] = []
 
-    init(factsService: any FactsServiceProtocol, localization: Localization = Localization()) {
+    init(factsService: any FactsServiceProtocol) {
         self.factsService = factsService
-        self.localization = localization
     }
 
     func loadFacts() async {
@@ -98,18 +95,18 @@ final class FactsListViewModel {
 
     private func message(for error: Error) -> String {
         guard let error = error as? HTTPClientError else {
-            return localization[.genericError]
+            return String(localized: "error.generic")
         }
 
         switch error {
         case .transport(.notConnectedToInternet):
-            return localization[.offlineError]
+            return String(localized: "error.offline")
         case .transport(.timedOut):
-            return localization[.timeoutError]
+            return String(localized: "error.timeout")
         case .httpStatus(let statusCode) where (500 ..< 600).contains(statusCode):
-            return localization[.serverError]
+            return String(localized: "error.server")
         default:
-            return localization[.genericError]
+            return String(localized: "error.generic")
         }
     }
 }

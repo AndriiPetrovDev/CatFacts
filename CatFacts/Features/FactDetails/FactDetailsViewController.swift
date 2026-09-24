@@ -5,7 +5,7 @@ final class FactDetailsViewController: UIViewController {
 
     private lazy var contentView: FactDetailsView = {
         let view = FactDetailsView()
-        view.configure(title: viewModel.title, text: viewModel.text, isVerified: viewModel.isVerified, isNew: viewModel.isNew, localization: viewModel.localization)
+        view.configure(title: viewModel.title, text: viewModel.text, isVerified: viewModel.isVerified, isNew: viewModel.isNew)
         return view
     }()
 
@@ -24,7 +24,7 @@ final class FactDetailsViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        title = viewModel.localization[.detailsTitle]
+        title = String(localized: "details.title")
         navigationItem.largeTitleDisplayMode = .never
     }
 }
@@ -34,20 +34,13 @@ final class FactDetailsViewController: UIViewController {
 
     @available(iOS 17.0, *)
     @MainActor
-    private func makeFactDetailsViewControllerPreview(style: UIUserInterfaceStyle, contentSize: UIContentSizeCategory, localization: Localization = Localization()) -> UINavigationController {
+    private func makeFactDetailsViewControllerPreview(style: UIUserInterfaceStyle, contentSize: UIContentSizeCategory) -> UINavigationController {
         let fact = CatFactFixtures.make()
-        let controller = FactDetailsViewController(viewModel: FactDetailsViewModel(fact: fact, localization: localization))
+        let controller = FactDetailsViewController(viewModel: FactDetailsViewModel(fact: fact))
         let navigationController = UINavigationController(rootViewController: controller)
         navigationController.traitOverrides.userInterfaceStyle = style
         navigationController.traitOverrides.preferredContentSizeCategory = contentSize
         return navigationController
-    }
-
-    @available(iOS 17.0, *)
-    #Preview("Languages · Details") {
-        LocalizedPreview { localization in
-            makeFactDetailsViewControllerPreview(style: .light, contentSize: .large, localization: localization)
-        }
     }
 
     @available(iOS 17.0, *)

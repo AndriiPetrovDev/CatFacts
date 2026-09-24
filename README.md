@@ -1,6 +1,6 @@
 # Cat Facts
 
-A UIKit take-home application for browsing and searching cat facts, with an emphasis on decisions that remain useful as the product grows.
+A UIKit take-home application for iOS 17 and later for browsing and searching cat facts, with an emphasis on decisions that remain useful as the product grows.
 
 
 ## Design decisions
@@ -28,11 +28,11 @@ A UIKit take-home application for browsing and searching cat facts, with an emph
 
 ## Localization
 
-Interface and VoiceOver strings are localized into 10 languages: English, Spanish, French, German, Brazilian Portuguese, Arabic, Hindi, Simplified Chinese, and Japanese. Fact text retains the language supplied by the backend.
+Interface and VoiceOver strings use `String(localized:)` and the system-selected app language. Translations cover 10 languages: English, Spanish, French, German, Brazilian Portuguese, Russian, Arabic, Hindi, Simplified Chinese, and Japanese. Fact text retains the language supplied by the backend.
 
 ## Previews
 
-Xcode Previews cover the list and details, both UI variants, loading, empty and error states, duplicate IDs, localization, right-to-left layout, dark mode, and large text. Local fixtures allow UI review without a live server. Preview helpers are excluded from Release builds.
+Xcode Previews cover the list and details, both UI variants, loading, empty and error states, duplicate IDs, dark mode, and large text. Local fixtures allow UI review without a live server. Preview helpers are excluded from Release builds.
 
 <p>
   <img src="docs/screenshots/Loaded · Light · Default.png" width="24%" alt="Fact list in light mode">

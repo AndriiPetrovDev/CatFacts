@@ -37,16 +37,14 @@ final class FactCell: UICollectionViewListCell {
         nil
     }
 
-    func configure(text: String, isVerified: Bool, isNew: Bool, searchQuery: String = "", localization: Localization = Localization()) {
+    func configure(text: String, isVerified: Bool, isNew: Bool, searchQuery: String = "") {
         titleLabel.attributedText = highlightedText(text, query: searchQuery)
-        newStatusView.localize(using: localization)
-        verifiedStatusView.localize(using: localization)
         newStatusView.isHidden = !isNew
         verifiedStatusView.isHidden = !isVerified
         accessibilityLabel = text
-        accessibilityHint = localization[.openDetailsHint]
+        accessibilityHint = String(localized: "accessibility.openDetails")
         let statuses = [newStatusView, verifiedStatusView].filter { !$0.isHidden }.compactMap(\.accessibilityLabel)
-        accessibilityValue = statuses.isEmpty ? nil : statuses.joined(separator: localization[.statusSeparator])
+        accessibilityValue = statuses.isEmpty ? nil : statuses.joined(separator: String(localized: "status.separator"))
     }
 
     private func highlightedText(_ text: String, query: String) -> NSAttributedString {
