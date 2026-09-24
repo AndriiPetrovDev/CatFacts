@@ -2,28 +2,30 @@ import UIKit
 import SnapKit
 
 final class FactsListLegacyViewController: UIViewController {
+    private enum Layout {
+        static let horizontalInset: CGFloat = 20
+        static let searchFieldInset: CGFloat = 8
+        static let filtersBottomInset: CGFloat = 16
+    }
+
     private let viewModel: FactsListViewModel
     private lazy var collectionController = FactsListCollectionViewController(viewModel: viewModel)
-    private var isScreenVisible = false
-    private var isSearchPanelHidden = false
-    private var isTopSearchExpanding = false
-    private var topSearchTransitionID = 0
     private var keyboardOverlap: CGFloat = 0
-    private var searchPanelTopConstraint: NSLayoutConstraint?
+    private var isSearchPanelCollapsed = false
+    private var searchPanelHeight: CGFloat = 0
+    private var searchBarHeight: CGFloat = 0
+    private var searchPanelHeightConstraint: Constraint?
+    private var searchBarHeightConstraint: Constraint?
 
-    private lazy var searchController: UISearchController = {
-        let controller = UISearchController(searchResultsController: nil)
-        controller.searchResultsUpdater = self
-        controller.delegate = self
-        controller.obscuresBackgroundDuringPresentation = false
-        controller.hidesNavigationBarDuringPresentation = false
-        controller.searchBar.delegate = self
-        controller.searchBar.placeholder = "Search facts"
-        controller.searchBar.text = viewModel.searchQuery
-        controller.searchBar.autocapitalizationType = .none
-        controller.searchBar.autocorrectionType = .no
-        controller.searchBar.sizeToFit()
-        return controller
+    private lazy var searchBar: UISearchBar = {
+        let bar = UISearchBar()
+        bar.delegate = self
+        bar.placeholder = "Search facts"
+        bar.text = viewModel.searchQuery
+        bar.autocapitalizationType = .none
+        bar.autocorrectionType = .no
+        bar.backgroundImage = UIImage()
+        return bar
     }()
 
     private lazy var filterButtons = [
@@ -39,15 +41,33 @@ final class FactsListLegacyViewController: UIViewController {
         return stack
     }()
 
-    private lazy var searchPanel: UIStackView = {
-        let stack = UIStackView(arrangedSubviews: [filterBar])
+    private lazy var filterContainer: UIView = {
+        let container = UIView()
+        container.addSubview(filterBar)
+        return container
+    }()
+
+    private lazy var searchContent: UIStackView = {
+        let stack = UIStackView(arrangedSubviews: [searchBar, filterContainer])
         stack.axis = .vertical
-        stack.alignment = .leading
-        stack.spacing = 12
-        stack.backgroundColor = .systemGroupedBackground
         stack.isLayoutMarginsRelativeArrangement = true
-        stack.directionalLayoutMargins = NSDirectionalEdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16)
+        stack.insetsLayoutMarginsFromSafeArea = false
+        let inset = Layout.horizontalInset - Layout.searchFieldInset
+        stack.directionalLayoutMargins = NSDirectionalEdgeInsets(
+            top: 0,
+            leading: inset,
+            bottom: Layout.filtersBottomInset,
+            trailing: inset
+        )
         return stack
+    }()
+
+    private lazy var searchPanel: UIView = {
+        let panel = UIView()
+        panel.backgroundColor = .systemGroupedBackground
+        panel.clipsToBounds = true
+        panel.addSubview(searchContent)
+        return panel
     }()
 
     init(viewModel: FactsListViewModel) {
@@ -67,25 +87,30 @@ final class FactsListLegacyViewController: UIViewController {
         super.viewDidLoad()
         title = "Cat Facts"
         navigationItem.largeTitleDisplayMode = .always
-        definesPresentationContext = true
         view.backgroundColor = .systemGroupedBackground
-        navigationItem.searchController = searchController
-        navigationItem.hidesSearchBarWhenScrolling = false
-        if #available(iOS 16.0, *) {
-            navigationItem.preferredSearchBarPlacement = .stacked
+
+        let appearance = UINavigationBarAppearance()
+        appearance.configureWithOpaqueBackground()
+        appearance.backgroundColor = .systemGroupedBackground
+        appearance.shadowColor = .clear
+        navigationItem.standardAppearance = appearance
+        navigationItem.scrollEdgeAppearance = appearance
+        navigationItem.compactAppearance = appearance
+        if #available(iOS 15.0, *) {
+            navigationItem.compactScrollEdgeAppearance = appearance
         }
+
         collectionController.onScroll = { [weak self] in
-            self?.updateTopSearchVisibility()
+            self?.updateSearchPanelStretch()
         }
         collectionController.onScrollDirectionChange = { [weak self] direction in
-            self?.setTopSearchCollapsed(direction == .down)
+            self?.setSearchPanelCollapsed(direction == .down)
         }
         collectionController.onShowStatus = { [weak self] in
-            self?.setTopSearchCollapsed(false)
-            self?.updateTopSearchVisibility()
+            self?.setSearchPanelCollapsed(false)
         }
         collectionController.shouldUpdateAccessibilityFocus = { [weak self] in
-            self?.searchController.searchBar.searchTextField.isFirstResponder == false
+            self?.searchBar.searchTextField.isFirstResponder == false
         }
         addChild(collectionController)
         view.addSubview(collectionController.view)
@@ -106,129 +131,103 @@ final class FactsListLegacyViewController: UIViewController {
 
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        let keyboardInset = max(0, keyboardOverlap - view.safeAreaInsets.bottom)
-        updateSearchPanelTopConstraint()
-        collectionController.updateContentInsets(top: searchPanel.bounds.height, bottom: keyboardInset)
-        updateTopSearchVisibility()
-    }
-
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        let searchInput = searchController.searchBar.searchTextField
-        searchInput.isUserInteractionEnabled = !isSearchPanelHidden
-        searchInput.accessibilityElementsHidden = isSearchPanelHidden
-        setSearchPanelAlpha(isSearchPanelHidden ? 0 : 1)
-    }
-
-    override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
-        setSearchPanelAlpha(isSearchPanelHidden ? 0 : 1)
-        isScreenVisible = true
-        updateTopSearchVisibility()
+        updateSearchPanelLayout()
     }
 
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-        isScreenVisible = false
-        searchPanelTopConstraint?.isActive = false
         if isMovingFromParent || navigationController?.topViewController !== self {
-            searchController.searchBar.resignFirstResponder()
+            searchBar.resignFirstResponder()
         }
     }
 
     private func setupConstraints() {
+        searchBarHeight = max(44, searchBar.sizeThatFits(view.bounds.size).height)
+        searchPanelHeight = searchBarHeight
+            + filterBar.systemLayoutSizeFitting(UIView.layoutFittingCompressedSize).height
+            + Layout.filtersBottomInset
+
         collectionController.view.snp.makeConstraints { make in
             make.edges.equalToSuperview()
         }
 
         searchPanel.snp.makeConstraints { make in
-            make.leading.trailing.equalTo(view.safeAreaLayoutGuide)
-            make.top.equalTo(view.safeAreaLayoutGuide).priority(.low)
+            make.top.leading.trailing.equalTo(view.safeAreaLayoutGuide)
+            searchPanelHeightConstraint = make.height.equalTo(searchPanelHeight).constraint
+        }
+
+        searchContent.snp.makeConstraints { make in
+            make.bottom.leading.trailing.equalToSuperview()
+        }
+
+        searchBar.snp.makeConstraints { make in
+            searchBarHeightConstraint = make.height.equalTo(searchBarHeight).constraint
         }
 
         filterBar.snp.makeConstraints { make in
-            make.width.lessThanOrEqualTo(searchPanel.layoutMarginsGuide)
+            make.top.bottom.equalToSuperview()
+            make.leading.equalToSuperview().offset(Layout.searchFieldInset)
+            make.trailing.lessThanOrEqualToSuperview().inset(Layout.searchFieldInset)
         }
     }
 
-    private func updateSearchPanelTopConstraint() {
-        let searchBar = searchController.searchBar
-        guard navigationItem.searchController === searchController,
-              navigationController?.topViewController === self,
-              let window = view.window,
-              searchBar.window === window else {
-            searchPanelTopConstraint?.isActive = false
-            return
+    private func updateSearchPanelLayout() {
+        let width = view.safeAreaLayoutGuide.layoutFrame.width
+        guard width > 0 else { return }
+
+        let margins = searchContent.directionalLayoutMargins
+        let barWidth = max(0, width - margins.leading - margins.trailing)
+        let barHeight = max(44, searchBar.sizeThatFits(CGSize(width: barWidth, height: .greatestFiniteMagnitude)).height)
+        if abs(searchBarHeight - barHeight) > 0.5 {
+            searchBarHeight = barHeight
+            searchBarHeightConstraint?.update(offset: barHeight)
         }
 
-        // UIKit attaches the search bar to the navigation hierarchy after viewDidLoad.
-        if searchPanelTopConstraint == nil {
-            searchPanelTopConstraint = searchPanel.topAnchor.constraint(equalTo: searchBar.bottomAnchor)
+        let contentHeight = searchContent.systemLayoutSizeFitting(
+            CGSize(width: width, height: UIView.layoutFittingCompressedSize.height),
+            withHorizontalFittingPriority: .required,
+            verticalFittingPriority: .fittingSizeLevel
+        ).height
+        let height = isSearchPanelCollapsed ? 0 : ceil(contentHeight)
+        if abs(searchPanelHeight - height) > 0.5 {
+            searchPanelHeight = height
+            searchPanelHeightConstraint?.update(offset: height)
         }
-        searchPanelTopConstraint?.isActive = true
+        let keyboardInset = max(0, keyboardOverlap - view.safeAreaInsets.bottom)
+        collectionController.updateContentInsets(top: height, bottom: keyboardInset)
+        updateSearchPanelStretch()
     }
 
-    private func updateTopSearchVisibility() {
-        guard isScreenVisible else { return }
-        let searchBar = searchController.searchBar
-        guard let window = view.window,
-              searchBar.window === window,
-              !searchBar.bounds.isEmpty else {
-            setSearchPanelHidden(true)
-            return
-        }
-
-        let searchFrame = searchBar.convert(searchBar.bounds, to: window)
-        let field = searchBar.searchTextField
-        let fullFrame = searchFrame.union(field.convert(field.bounds, to: window))
-        var visibleFrame = fullFrame.intersection(searchFrame).intersection(window.bounds)
-        var ancestor = searchBar.superview
-        while let parent = ancestor {
-            if parent.clipsToBounds || parent === navigationController?.navigationBar {
-                visibleFrame = visibleFrame.intersection(parent.convert(parent.bounds, to: window))
-            }
-            ancestor = parent.superview
-        }
-
-        let tolerance = 1 / window.screen.scale
-        let isFullyExpanded = !isTopSearchExpanding
-            && !visibleFrame.isNull
-            && visibleFrame.height >= fullFrame.height - tolerance
-            && visibleFrame.width >= fullFrame.width - tolerance
-        setSearchPanelHidden(!isFullyExpanded)
+    private func updateSearchPanelStretch() {
+        let scrollView = collectionController.scrollView
+        let overscroll = max(0, -scrollView.contentOffset.y - scrollView.adjustedContentInset.top)
+        let offset = isSearchPanelCollapsed ? 0 : overscroll
+        searchPanel.transform = CGAffineTransform(translationX: 0, y: offset)
     }
 
-    private func setTopSearchCollapsed(_ collapsed: Bool) {
-        guard navigationItem.hidesSearchBarWhenScrolling != collapsed else { return }
-        topSearchTransitionID += 1
-        let transitionID = topSearchTransitionID
-        isTopSearchExpanding = !collapsed && isSearchPanelHidden
+    private func setSearchPanelCollapsed(_ collapsed: Bool) {
+        guard isSearchPanelCollapsed != collapsed else { return }
+        view.layoutIfNeeded()
+        isSearchPanelCollapsed = collapsed
+        searchPanel.isUserInteractionEnabled = !collapsed
+        searchPanel.accessibilityElementsHidden = collapsed
         if collapsed {
-            searchController.searchBar.resignFirstResponder()
-            searchController.isActive = false
+            searchBar.resignFirstResponder()
         }
 
         let updateLayout = {
-            self.navigationItem.hidesSearchBarWhenScrolling = collapsed
-            self.navigationController?.view.layoutIfNeeded()
-        }
-        let finishTransition = { [weak self] in
-            guard let self, self.topSearchTransitionID == transitionID else { return }
-            self.isTopSearchExpanding = false
-            self.updateTopSearchVisibility()
+            self.updateSearchPanelLayout()
+            self.view.layoutIfNeeded()
         }
         if UIAccessibility.isReduceMotionEnabled {
             UIView.performWithoutAnimation(updateLayout)
-            finishTransition()
         } else {
             UIView.animate(
                 withDuration: 0.25,
                 delay: 0,
                 options: [.beginFromCurrentState, .allowUserInteraction, .curveEaseInOut],
                 animations: updateLayout
-            ) { _ in
-                finishTransition()
-            }
+            )
         }
     }
 
@@ -280,37 +279,6 @@ final class FactsListLegacyViewController: UIViewController {
         }
     }
 
-    private func setSearchPanelHidden(_ hidden: Bool) {
-        guard isSearchPanelHidden != hidden else { return }
-        isSearchPanelHidden = hidden
-        searchPanel.isUserInteractionEnabled = !hidden
-        searchPanel.accessibilityElementsHidden = hidden
-        let searchInput = searchController.searchBar.searchTextField
-        searchInput.isUserInteractionEnabled = !hidden
-        searchInput.accessibilityElementsHidden = hidden
-
-        let updateVisibility = {
-            self.setSearchPanelAlpha(hidden ? 0 : 1)
-        }
-
-        if UIAccessibility.isReduceMotionEnabled {
-            UIView.performWithoutAnimation(updateVisibility)
-            return
-        }
-
-        UIView.animate(
-            withDuration: 0.25,
-            delay: 0,
-            options: [.beginFromCurrentState, .allowUserInteraction, .curveEaseInOut],
-            animations: updateVisibility
-        )
-    }
-
-    private func setSearchPanelAlpha(_ alpha: CGFloat) {
-        searchPanel.alpha = alpha
-        searchController.searchBar.searchTextField.alpha = alpha
-    }
-
     @objc private func keyboardFrameDidChange(_ notification: Notification) {
         guard view.window != nil,
               let userInfo = notification.userInfo,
@@ -329,19 +297,26 @@ final class FactsListLegacyViewController: UIViewController {
     }
 }
 
-extension FactsListLegacyViewController: UISearchResultsUpdating {
-    func updateSearchResults(for searchController: UISearchController) {
-        viewModel.updateSearchQuery(searchController.searchBar.text ?? "")
-    }
-}
-
-extension FactsListLegacyViewController: UISearchControllerDelegate {
-    func willPresentSearchController(_ searchController: UISearchController) {
-        setTopSearchCollapsed(false)
-    }
-}
-
 extension FactsListLegacyViewController: UISearchBarDelegate {
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        viewModel.updateSearchQuery(searchText)
+    }
+
+    func searchBarTextDidBeginEditing(_ searchBar: UISearchBar) {
+        setSearchPanelCollapsed(false)
+        searchBar.setShowsCancelButton(true, animated: true)
+    }
+
+    func searchBarTextDidEndEditing(_ searchBar: UISearchBar) {
+        searchBar.setShowsCancelButton(false, animated: !isSearchPanelCollapsed)
+    }
+
+    func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
+        searchBar.text = ""
+        viewModel.updateSearchQuery("")
+        searchBar.resignFirstResponder()
+    }
+
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
         searchBar.resignFirstResponder()
     }
