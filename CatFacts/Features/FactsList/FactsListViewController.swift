@@ -11,7 +11,6 @@ final class FactsListViewController: UIViewController {
     private var searchPanelBottomInset: CGFloat = 8
     private var searchToolbarBottomInset: CGFloat = 8
     private var previousToolbarHidden: Bool?
-    private weak var searchToolbarContentView: UIView?
 
     private var usesSearchToolbar: Bool {
         traitCollection.userInterfaceIdiom == .phone
@@ -19,7 +18,6 @@ final class FactsListViewController: UIViewController {
 
     private lazy var searchController: UISearchController = {
         let controller = UISearchController(searchResultsController: nil)
-        controller.searchResultsUpdater = self
         controller.delegate = self
         controller.obscuresBackgroundDuringPresentation = false
         controller.hidesNavigationBarDuringPresentation = false
@@ -115,36 +113,23 @@ final class FactsListViewController: UIViewController {
             let searchFrame = searchController.searchBar.convert(searchController.searchBar.bounds, to: view)
             searchToolbarBottomInset = max(8, view.safeAreaLayoutGuide.layoutFrame.maxY - searchFrame.minY + 8 - keyboardInset)
         }
-        if usesSearchToolbar {
+        if usesSearchToolbar, !isSearchPanelHidden {
             panelBottomInset = searchToolbarBottomInset + keyboardInset
         }
         if abs(searchPanelBottomInset - panelBottomInset) > 0.5 {
             searchPanelBottomInset = panelBottomInset
             searchPanelBottomConstraint?.update(offset: -panelBottomInset)
         }
-        collectionController.updateContentInsets(bottom: searchPanel.bounds.height + panelBottomInset + 8)
+        let bottomInset = isSearchPanelHidden ? keyboardInset : searchPanel.bounds.height + panelBottomInset + 8
+        collectionController.updateContentInsets(bottom: bottomInset)
     }
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        let searchInput = searchController.searchBar
-        searchInput.isUserInteractionEnabled = !isSearchPanelHidden
-        searchInput.accessibilityElementsHidden = isSearchPanelHidden
-        if usesSearchToolbar, let navigationController {
-            if previousToolbarHidden == nil {
-                previousToolbarHidden = navigationController.isToolbarHidden
-            }
-            navigationController.setToolbarHidden(false, animated: animated)
-            navigationController.toolbar.alpha = 1
-            navigationController.toolbar.isUserInteractionEnabled = !isSearchPanelHidden
-            navigationController.toolbar.accessibilityElementsHidden = isSearchPanelHidden
+        if usesSearchToolbar, previousToolbarHidden == nil, let navigationController {
+            previousToolbarHidden = navigationController.isToolbarHidden
         }
-        setSearchPanelAlpha(isSearchPanelHidden ? 0 : 1)
-    }
-
-    override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
-        setSearchPanelAlpha(isSearchPanelHidden ? 0 : 1)
+        updateSearchToolbar(animated: animated && !UIAccessibility.isReduceMotionEnabled)
     }
 
     override func viewWillDisappear(_ animated: Bool) {
@@ -156,12 +141,7 @@ final class FactsListViewController: UIViewController {
            let navigationController,
            navigationController.topViewController !== self,
            let previousToolbarHidden {
-            searchToolbarContentView?.alpha = 1
-            searchToolbarContentView = nil
-            navigationController.toolbar.alpha = 1
-            navigationController.toolbar.isUserInteractionEnabled = true
-            navigationController.toolbar.accessibilityElementsHidden = false
-            navigationController.setToolbarHidden(previousToolbarHidden, animated: animated)
+            navigationController.setToolbarHidden(previousToolbarHidden, animated: animated && !UIAccessibility.isReduceMotionEnabled)
             self.previousToolbarHidden = nil
         }
     }
@@ -223,21 +203,22 @@ final class FactsListViewController: UIViewController {
         isSearchPanelHidden = hidden
         searchPanel.isUserInteractionEnabled = !hidden
         searchPanel.accessibilityElementsHidden = hidden
-        let searchBar = searchController.searchBar
-        searchBar.isUserInteractionEnabled = !hidden
-        searchBar.accessibilityElementsHidden = hidden
-        let toolbar = usesSearchToolbar ? navigationController?.toolbar : nil
-        toolbar?.isUserInteractionEnabled = !hidden
-        toolbar?.accessibilityElementsHidden = hidden
         if hidden {
-            searchBar.resignFirstResponder()
+            searchController.searchBar.resignFirstResponder()
+            searchController.isActive = false
+        } else {
+            searchController.searchBar.text = viewModel.searchQuery
         }
 
+        let animated = !UIAccessibility.isReduceMotionEnabled
+        updateSearchToolbar(animated: animated)
         let updateVisibility = {
-            self.setSearchPanelAlpha(hidden ? 0 : 1)
+            self.searchPanel.alpha = hidden ? 0 : 1
+            self.view.setNeedsLayout()
+            self.view.layoutIfNeeded()
         }
 
-        if UIAccessibility.isReduceMotionEnabled {
+        if !animated {
             UIView.performWithoutAnimation(updateVisibility)
             return
         }
@@ -250,29 +231,12 @@ final class FactsListViewController: UIViewController {
         )
     }
 
-    private func setSearchPanelAlpha(_ alpha: CGFloat) {
-        searchPanel.alpha = alpha
-        if usesSearchToolbar {
-            let container = searchToolbarContainer()
-            if searchToolbarContentView !== container {
-                searchToolbarContentView?.alpha = 1
-                searchToolbarContentView = container
-            }
-            container.alpha = alpha
+    private func updateSearchToolbar(animated: Bool) {
+        guard usesSearchToolbar else { return }
+        navigationItem.searchController = isSearchPanelHidden ? nil : searchController
+        if navigationController?.topViewController === self {
+            navigationController?.setToolbarHidden(isSearchPanelHidden, animated: animated)
         }
-    }
-
-    private func searchToolbarContainer() -> UIView {
-        var container: UIView = searchController.searchBar.searchTextField
-        // Integrated search renders its field and glass in a separate UIKit container.
-        while let parent = container.superview,
-              !(parent is UIWindow),
-              parent !== view,
-              !view.isDescendant(of: parent),
-              navigationController?.navigationBar.isDescendant(of: parent) != true {
-            container = parent
-        }
-        return container
     }
 
     @objc private func keyboardFrameDidChange(_ notification: Notification) {
@@ -294,13 +258,6 @@ final class FactsListViewController: UIViewController {
 }
 
 @available(iOS 26.0, *)
-extension FactsListViewController: UISearchResultsUpdating {
-    func updateSearchResults(for searchController: UISearchController) {
-        viewModel.updateSearchQuery(searchController.searchBar.text ?? "")
-    }
-}
-
-@available(iOS 26.0, *)
 extension FactsListViewController: UISearchControllerDelegate {
     func willPresentSearchController(_ searchController: UISearchController) {
         setSearchPanelHidden(false)
@@ -309,6 +266,16 @@ extension FactsListViewController: UISearchControllerDelegate {
 
 @available(iOS 26.0, *)
 extension FactsListViewController: UISearchBarDelegate {
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        guard !isSearchPanelHidden else { return }
+        viewModel.updateSearchQuery(searchText)
+    }
+
+    func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
+        searchBar.text = ""
+        viewModel.updateSearchQuery("")
+    }
+
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
         searchBar.resignFirstResponder()
     }
