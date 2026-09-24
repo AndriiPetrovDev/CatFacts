@@ -10,7 +10,7 @@ final class FactDetailsView: UIView {
         label.font = .preferredFont(forTextStyle: .title2)
         label.adjustsFontForContentSizeCategory = true
         label.numberOfLines = 0
-        label.accessibilityTraits = .header
+        label.accessibilityTraits.insert(.header)
         return label
     }()
 
@@ -122,6 +122,15 @@ final class FactDetailsView: UIView {
         textLabel.text = text
         newStack.isHidden = !isNew
         verifiedStack.isHidden = !isVerified
+
+        var elements: [UIView] = [titleLabel, textLabel]
+        if isNew {
+            elements.append(newLabel)
+        }
+        if isVerified {
+            elements.append(verifiedLabel)
+        }
+        contentStack.accessibilityElements = elements
     }
 }
 

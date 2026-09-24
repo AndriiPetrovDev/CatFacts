@@ -86,6 +86,7 @@ final class FactCell: UICollectionViewListCell {
         }
 
         isAccessibilityElement = true
+        contentView.accessibilityElementsHidden = true
         accessibilityTraits = .button
         accessibilityHint = "Opens fact details"
     }

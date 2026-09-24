@@ -8,6 +8,7 @@ final class FactsListViewController: UIViewController {
 
     private let viewModel: FactsListViewModel
     private var loadTask: Task<Void, Never>?
+    private var isScreenVisible = false
 
     private lazy var dataSource: UICollectionViewDiffableDataSource<Section, CatFact.ID> = {
         let registration = UICollectionView.CellRegistration<FactCell, CatFact> { cell, _, fact in
@@ -33,7 +34,11 @@ final class FactsListViewController: UIViewController {
         return collectionView
     }()
 
-    private lazy var activityIndicator = UIActivityIndicatorView(style: .medium)
+    private lazy var activityIndicator: UIActivityIndicatorView = {
+        let indicator = UIActivityIndicatorView(style: .medium)
+        indicator.isAccessibilityElement = false
+        return indicator
+    }()
 
     private lazy var messageLabel: UILabel = {
         let label = UILabel()
@@ -48,6 +53,7 @@ final class FactsListViewController: UIViewController {
     private lazy var retryButton: UIButton = {
         let button = UIButton(type: .system)
         button.setTitle("Try Again", for: .normal)
+        button.accessibilityHint = "Loads cat facts again"
         button.titleLabel?.font = .preferredFont(forTextStyle: .body)
         button.titleLabel?.adjustsFontForContentSizeCategory = true
         button.addAction(UIAction { [weak self] _ in
@@ -87,6 +93,19 @@ final class FactsListViewController: UIViewController {
         bindViewModel()
         render(viewModel.state)
         loadFacts()
+    }
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        isScreenVisible = true
+        if !statusStack.isHidden {
+            updateAccessibilityFocus()
+        }
+    }
+
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        isScreenVisible = false
     }
 
     // MARK: - Setup
@@ -146,11 +165,15 @@ final class FactsListViewController: UIViewController {
             showStatus(isLoading: true, message: "Loading facts…")
 
         case .loaded:
-            applySnapshot()
             showStatus(isLoading: false, message: viewModel.items.isEmpty ? "No facts yet." : nil)
+            applySnapshot()
 
         case .failed(let message):
             showStatus(isLoading: false, message: message, canRetry: true)
+        }
+
+        if state != .loaded {
+            updateAccessibilityFocus()
         }
     }
 
@@ -164,6 +187,8 @@ final class FactsListViewController: UIViewController {
         messageLabel.text = message
         messageLabel.isHidden = message == nil
         retryButton.isHidden = !canRetry
+        let statusElements: [UIView] = [messageLabel, retryButton]
+        statusStack.accessibilityElements = statusElements.filter { !$0.isHidden }
         statusStack.isHidden = !isLoading && message == nil
         collectionView.isHidden = !statusStack.isHidden
     }
@@ -174,7 +199,25 @@ final class FactsListViewController: UIViewController {
         snapshot.appendSections([.main])
         snapshot.appendItems(viewModel.items.map(\.id))
         snapshot.reloadItems(snapshot.itemIdentifiers.filter { existingIDs.contains($0) })
-        dataSource.apply(snapshot, animatingDifferences: false)
+        dataSource.apply(snapshot, animatingDifferences: false) { [weak self] in
+            guard let self, self.viewModel.state == .loaded else { return }
+            self.updateAccessibilityFocus()
+        }
+    }
+
+    private func updateAccessibilityFocus() {
+        guard isScreenVisible, UIAccessibility.isVoiceOverRunning else { return }
+        view.layoutIfNeeded()
+
+        let element: UIView?
+        if !statusStack.isHidden {
+            element = messageLabel
+        } else {
+            element = collectionView.cellForItem(at: IndexPath(item: 0, section: 0))
+        }
+
+        guard let element else { return }
+        UIAccessibility.post(notification: .layoutChanged, argument: element)
     }
 }
 
