@@ -1,12 +1,40 @@
 import UIKit
+import SnapKit
 
 final class FactDetailsViewController: UIViewController {
     private let viewModel: FactDetailsViewModel
 
-    private lazy var contentView: FactDetailsView = {
-        let view = FactDetailsView()
-        view.configure(title: viewModel.title, text: viewModel.text, isVerified: viewModel.isVerified, isNew: viewModel.isNew)
-        return view
+    private lazy var scrollView = UIScrollView()
+    private lazy var contentView = UIView()
+
+    private lazy var titleLabel: UILabel = {
+        let label = UILabel()
+        label.font = .preferredFont(forTextStyle: .title2)
+        label.adjustsFontForContentSizeCategory = true
+        label.numberOfLines = 0
+        label.accessibilityTraits.insert(.header)
+        return label
+    }()
+
+    private lazy var textLabel: UILabel = {
+        let label = UILabel()
+        label.accessibilityIdentifier = "facts.details.text"
+        label.font = .preferredFont(forTextStyle: .body)
+        label.adjustsFontForContentSizeCategory = true
+        label.numberOfLines = 0
+        label.textColor = .label
+        return label
+    }()
+
+    private let newStatusView = FactStatusView(status: .new)
+    private let verifiedStatusView = FactStatusView(status: .verified)
+
+    private lazy var contentStack: UIStackView = {
+        let stack = UIStackView(arrangedSubviews: [titleLabel, textLabel, newStatusView, verifiedStatusView])
+        stack.axis = .vertical
+        stack.spacing = 16
+        stack.setCustomSpacing(12, after: textLabel)
+        return stack
     }()
 
     init(viewModel: FactDetailsViewModel) {
@@ -18,14 +46,49 @@ final class FactDetailsViewController: UIViewController {
         nil
     }
 
-    override func loadView() {
-        view = contentView
-    }
-
     override func viewDidLoad() {
         super.viewDidLoad()
         title = String(localized: "details.title")
         navigationItem.largeTitleDisplayMode = .never
+        setupView()
+        configureContent()
+    }
+
+    private func setupView() {
+        view.backgroundColor = .systemBackground
+
+        view.addSubview(scrollView)
+        scrollView.addSubview(contentView)
+        contentView.addSubview(contentStack)
+
+        scrollView.snp.makeConstraints { make in
+            make.edges.equalTo(view.safeAreaLayoutGuide)
+        }
+
+        contentView.snp.makeConstraints { make in
+            make.edges.equalTo(scrollView.contentLayoutGuide)
+            make.width.equalTo(scrollView.frameLayoutGuide)
+        }
+
+        contentStack.snp.makeConstraints { make in
+            make.edges.equalToSuperview().inset(24)
+        }
+    }
+
+    private func configureContent() {
+        titleLabel.text = viewModel.title
+        textLabel.text = viewModel.text
+        newStatusView.isHidden = !viewModel.isNew
+        verifiedStatusView.isHidden = !viewModel.isVerified
+
+        var elements: [UIView] = [titleLabel, textLabel]
+        if viewModel.isNew {
+            elements.append(newStatusView)
+        }
+        if viewModel.isVerified {
+            elements.append(verifiedStatusView)
+        }
+        contentStack.accessibilityElements = elements
     }
 }
 

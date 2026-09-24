@@ -25,7 +25,6 @@
 		27736AD0CF02B77921AB459F /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88CFD40126136D370090B26A /* AppDelegate.swift */; };
 		2A11E491E66C758022E09D47 /* FactsServiceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC8E896F78FC5B6B4129BB2C /* FactsServiceProtocol.swift */; };
 		2EFAB75A10B5797E66FF86E7 /* CatFactFixtures.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D7331078205444AB2D18407 /* CatFactFixtures.swift */; };
-		368907CB972EDBD1C5DBFA4E /* FactDetailsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0274C761EEFED16B721A4EB /* FactDetailsView.swift */; };
 		3C844216118303DCCAC8350E /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = D59EE6433062EDAE00947FA5 /* Alamofire */; };
 		3E41E06CF4E3ABBAD73B6F62 /* ScreenFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6FFD45089F726F72C64B7CDA /* ScreenFactory.swift */; };
 		409776DA26670F5D37DE2F93 /* AppEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA8160D309B9CEBA688A2A13 /* AppEnvironment.swift */; };
@@ -82,7 +81,6 @@
 		F23B37CA9AC60507F0305729 /* CatFactDTO.swift in Sources */ = {isa = PBXBuildFile; fileRef = 985551D32B17E426589BFFF6 /* CatFactDTO.swift */; };
 		F2BD28D6AEB6207BB9DDE5CE /* AppCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5822B82321A3032EC8AE300E /* AppCoordinator.swift */; };
 		F31B21E290D94639882D014A /* CatFactTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E292C1136A024EDBB7E617E0 /* CatFactTests.swift */; };
-		F576235426C90BD68D94FB0E /* FactDetailsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0274C761EEFED16B721A4EB /* FactDetailsView.swift */; };
 		F964845AD67EE6F5542A52A7 /* SnapKit in Frameworks */ = {isa = PBXBuildFile; productRef = 8EAB889AF8FADB095841DAAA /* SnapKit */; };
 		F9E6055487FF9B427909F4EC /* UITestSceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 886EAE804971716EA2CB4A23 /* UITestSceneDelegate.swift */; };
 		F9EAE058485B32115D4C860B /* FactStatusView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 126E10C823ED401C8A1B4202 /* FactStatusView.swift */; };
@@ -154,7 +152,6 @@
 		A91F90C9230B400A00000108 /* hi */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = hi; path = hi.lproj/Localizable.strings; sourceTree = "<group>"; };
 		A91F90C9230B400A00000109 /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/Localizable.strings"; sourceTree = "<group>"; };
 		A91F90C9230B400A0000010A /* ja */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ja; path = ja.lproj/Localizable.strings; sourceTree = "<group>"; };
-		B0274C761EEFED16B721A4EB /* FactDetailsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = FactDetailsView.swift; sourceTree = "<group>"; };
 		C0C4109F7C33087442260F34 /* AppDependencies.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AppDependencies.swift; sourceTree = "<group>"; };
 		CB870C2A05EEC588E87FA8D4 /* FactCell.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = FactCell.swift; sourceTree = "<group>"; };
 		CD088A7F328D611ED5E2403B /* FactDetailsViewModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = FactDetailsViewModel.swift; sourceTree = "<group>"; };
@@ -312,7 +309,6 @@
 			children = (
 				CD088A7F328D611ED5E2403B /* FactDetailsViewModel.swift */,
 				2B47CF668E178AEA2BDB172B /* FactDetailsViewController.swift */,
-				B0274C761EEFED16B721A4EB /* FactDetailsView.swift */,
 			);
 			path = FactDetails;
 			sourceTree = "<group>";
@@ -682,7 +678,6 @@
 				F9EAE058485B32115D4C860B /* FactStatusView.swift in Sources */,
 				9021E08D412E1FB310E1A4D4 /* FactDetailsViewModel.swift in Sources */,
 				622CBF976639B41BF85D5233 /* FactDetailsViewController.swift in Sources */,
-				F576235426C90BD68D94FB0E /* FactDetailsView.swift in Sources */,
 				CB4CFCDD9CF16FF03CE2DC5E /* HTTPClientProtocol.swift in Sources */,
 				4A06270C7F96B034450AE3F2 /* HTTPClientError.swift in Sources */,
 				747AC97CA6A7DCED3AC0D092 /* AlamofireHTTPClient.swift in Sources */,
@@ -719,7 +714,6 @@
 				126E10C823ED401C8A1B4201 /* FactStatusView.swift in Sources */,
 				B64C5D825F4C94E2427AD6CE /* FactDetailsViewModel.swift in Sources */,
 				9A8DA7275D793ECDF414140E /* FactDetailsViewController.swift in Sources */,
-				368907CB972EDBD1C5DBFA4E /* FactDetailsView.swift in Sources */,
 				C370E8E02498B4DEB0389E3D /* HTTPClientProtocol.swift in Sources */,
 				8411AC9D8143E90F73DE060A /* HTTPClientError.swift in Sources */,
 				9D187435FAE21F871A00E90B /* AlamofireHTTPClient.swift in Sources */,
