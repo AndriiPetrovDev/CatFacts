@@ -2,7 +2,7 @@ import XCTest
 
 final class LocalizationTests: XCTestCase {
     func testAllLanguagesHaveCompleteTranslationsInAppBundle() throws {
-        let languages = ["en", "es", "fr", "de", "pt-BR", "ru", "ar", "hi", "zh-Hans", "ja"]
+        let languages = ["en", "es", "fr", "de", "pt-BR", "ar", "hi", "zh-Hans", "ja"]
         let expectedKeys = try Set(translations(for: "en").keys)
         XCTAssertFalse(expectedKeys.isEmpty)
 

@@ -28,7 +28,7 @@ A UIKit take-home application for iOS 17 and later for browsing and searching ca
 
 ## Localization
 
-Interface and VoiceOver strings use `String(localized:)` and the system-selected app language. Translations cover 10 languages: English, Spanish, French, German, Brazilian Portuguese, Russian, Arabic, Hindi, Simplified Chinese, and Japanese. Fact text retains the language supplied by the backend.
+Interface and VoiceOver strings use `String(localized:)` and the system-selected app language. Translations cover 9 languages: English, Spanish, French, German, Brazilian Portuguese, Arabic, Hindi, Simplified Chinese, and Japanese. Fact text retains the language supplied by the backend.
 
 ## Previews
 

@@ -28,15 +28,13 @@ final class FactsService: FactsServiceProtocol {
         let data = try await httpClient.send(request)
         try Task.checkCancellation()
 
-        let facts: [CatFactDTO]
         do {
-            facts = try Self.makeDecoder().decode([CatFactDTO].self, from: data)
+            let facts = try Self.makeDecoder().decode([CatFactDTO].self, from: data)
+            try Task.checkCancellation()
+            return facts.map { $0.toDomain() }
         } catch let error as DecodingError {
             throw FactsServiceError.decoding(error)
         }
-
-        try Task.checkCancellation()
-        return facts.map { $0.toDomain() }
     }
 
     private static func makeDecoder() -> JSONDecoder {

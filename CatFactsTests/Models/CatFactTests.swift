@@ -126,7 +126,7 @@ final class CatFactTests: XCTestCase {
     }
 
     private func makeFact(createdAt: String) throws -> CatFact {
-        CatFact(id: "fact", text: "Cat fact", createdAt: try date(createdAt), isVerified: false)
+        try CatFact(id: "fact", text: "Cat fact", createdAt: date(createdAt), isVerified: false)
     }
 
     private func date(_ value: String) throws -> Date {
