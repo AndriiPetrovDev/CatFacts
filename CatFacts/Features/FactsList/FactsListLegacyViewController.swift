@@ -20,7 +20,7 @@ final class FactsListLegacyViewController: UIViewController {
     private lazy var searchBar: UISearchBar = {
         let bar = UISearchBar()
         bar.delegate = self
-        bar.placeholder = "Search facts"
+        bar.placeholder = viewModel.localization[.searchPlaceholder]
         bar.text = viewModel.searchQuery
         bar.autocapitalizationType = .none
         bar.autocorrectionType = .no
@@ -29,8 +29,8 @@ final class FactsListLegacyViewController: UIViewController {
     }()
 
     private lazy var filterButtons = [
-        makeFilterButton(title: "Verified", filter: .verified),
-        makeFilterButton(title: "New", filter: .new)
+        makeFilterButton(title: viewModel.localization[.verified], filter: .verified),
+        makeFilterButton(title: viewModel.localization[.new], filter: .new)
     ]
 
     private lazy var filterBar: UIStackView = {
@@ -85,7 +85,7 @@ final class FactsListLegacyViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        title = "Cat Facts"
+        title = viewModel.localization[.factsTitle]
         navigationItem.largeTitleDisplayMode = .always
         view.backgroundColor = .systemGroupedBackground
 
@@ -187,7 +187,8 @@ final class FactsListLegacyViewController: UIViewController {
             CGSize(width: width, height: UIView.layoutFittingCompressedSize.height),
             withHorizontalFittingPriority: .required,
             verticalFittingPriority: .fittingSizeLevel
-        ).height
+        )
+        .height
         let height = isSearchPanelCollapsed ? 0 : ceil(contentHeight)
         if abs(searchPanelHeight - height) > 0.5 {
             searchPanelHeight = height
@@ -288,6 +289,12 @@ final class FactsListLegacyViewController: UIViewController {
             ? max(0, view.bounds.maxY - keyboardFrame.minY)
             : 0
         view.setNeedsLayout()
+        if UIAccessibility.isReduceMotionEnabled {
+            UIView.performWithoutAnimation {
+                self.view.layoutIfNeeded()
+            }
+            return
+        }
         let duration = userInfo[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double ?? 0.25
         let curve = userInfo[UIResponder.keyboardAnimationCurveUserInfoKey] as? UInt ?? 0
         let options = UIView.AnimationOptions(rawValue: curve << 16).union(.beginFromCurrentState)
@@ -304,11 +311,11 @@ extension FactsListLegacyViewController: UISearchBarDelegate {
 
     func searchBarTextDidBeginEditing(_ searchBar: UISearchBar) {
         setSearchPanelCollapsed(false)
-        searchBar.setShowsCancelButton(true, animated: true)
+        searchBar.setShowsCancelButton(true, animated: !UIAccessibility.isReduceMotionEnabled)
     }
 
     func searchBarTextDidEndEditing(_ searchBar: UISearchBar) {
-        searchBar.setShowsCancelButton(false, animated: !isSearchPanelCollapsed)
+        searchBar.setShowsCancelButton(false, animated: !isSearchPanelCollapsed && !UIAccessibility.isReduceMotionEnabled)
     }
 
     func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
@@ -323,14 +330,17 @@ extension FactsListLegacyViewController: UISearchBarDelegate {
 }
 
 #if DEBUG
+    import SwiftUI
+
     @available(iOS 17.0, *)
     @MainActor
     private func makeFactsListLegacyViewControllerPreview(
         factsService: FactsServiceStub = FactsServiceStub(fetchFactsResponse: .success(CatFactFixtures.list)),
         style: UIUserInterfaceStyle = .light,
-        contentSize: UIContentSizeCategory = .large
+        contentSize: UIContentSizeCategory = .large,
+        localization: Localization = Localization()
     ) -> UINavigationController {
-        let viewModel = FactsListViewModel(factsService: factsService)
+        let viewModel = FactsListViewModel(factsService: factsService, localization: localization)
         let controller = FactsListLegacyViewController(viewModel: viewModel)
         let navigationController = UINavigationController(rootViewController: controller)
         navigationController.navigationBar.prefersLargeTitles = true
@@ -350,8 +360,40 @@ extension FactsListLegacyViewController: UISearchBarDelegate {
     }
 
     @available(iOS 17.0, *)
-    #Preview("Failed") {
+    #Preview("Error · Server") {
         makeFactsListLegacyViewControllerPreview(factsService: FactsServiceStub(fetchFactsResponse: .failure(.httpStatus(503))))
+    }
+
+    @available(iOS 17.0, *)
+    #Preview("Error · Offline") {
+        makeFactsListLegacyViewControllerPreview(factsService: FactsServiceStub(fetchFactsResponse: .failure(.transport(.notConnectedToInternet))))
+    }
+
+    @available(iOS 17.0, *)
+    #Preview("Error · Timeout") {
+        makeFactsListLegacyViewControllerPreview(factsService: FactsServiceStub(fetchFactsResponse: .failure(.transport(.timedOut))))
+    }
+
+    @available(iOS 17.0, *)
+    #Preview("Error · Generic") {
+        makeFactsListLegacyViewControllerPreview(factsService: FactsServiceStub(fetchFactsResponse: .failure(.invalidResponse)))
+    }
+
+    @available(iOS 17.0, *)
+    #Preview("Languages · iOS 18 UI") {
+        LocalizedPreview { localization in
+            makeFactsListLegacyViewControllerPreview(localization: localization)
+        }
+    }
+
+    @available(iOS 17.0, *)
+    #Preview("Languages · Offline") {
+        LocalizedPreview { localization in
+            makeFactsListLegacyViewControllerPreview(
+                factsService: FactsServiceStub(fetchFactsResponse: .failure(.transport(.notConnectedToInternet))),
+                localization: localization
+            )
+        }
     }
 
     @available(iOS 17.0, *)

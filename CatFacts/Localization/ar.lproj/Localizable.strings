@@ -1,0 +1,17 @@
+"facts.title" = "معلومات عن القطط";
+"fact.title" = "معلومة عن القطط";
+"details.title" = "تفاصيل المعلومة";
+"search.placeholder" = "البحث عن معلومات";
+"status.new" = "جديد";
+"status.verified" = "موثّق";
+"status.separator" = "، ";
+"action.retry" = "إعادة المحاولة";
+"accessibility.retry" = "إعادة تحميل معلومات عن القطط";
+"accessibility.openDetails" = "يفتح تفاصيل المعلومة";
+"facts.loading" = "جارٍ تحميل المعلومات…";
+"facts.empty" = "لا توجد معلومات بعد.";
+"search.empty" = "لم يتم العثور على معلومات.";
+"error.offline" = "أنت غير متصل بالإنترنت. تحقق من اتصالك وحاول مرة أخرى.";
+"error.timeout" = "انتهت مهلة الطلب. حاول مرة أخرى.";
+"error.server" = "الخادم غير متاح مؤقتًا. حاول مرة أخرى.";
+"error.generic" = "تعذّر تحميل المعلومات. حاول مرة أخرى.";

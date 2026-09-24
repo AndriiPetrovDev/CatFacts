@@ -31,7 +31,8 @@ final class FactsListCollectionViewController: UIViewController {
                 text: fact.text,
                 isVerified: fact.isVerified,
                 isNew: fact.isNew,
-                searchQuery: viewModel.searchQuery
+                searchQuery: viewModel.searchQuery,
+                localization: viewModel.localization
             )
         }
 
@@ -70,8 +71,8 @@ final class FactsListCollectionViewController: UIViewController {
 
     private lazy var retryButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setTitle("Try Again", for: .normal)
-        button.accessibilityHint = "Loads cat facts again"
+        button.setTitle(viewModel.localization[.retry], for: .normal)
+        button.accessibilityHint = viewModel.localization[.retryHint]
         button.titleLabel?.font = .preferredFont(forTextStyle: .body)
         button.titleLabel?.adjustsFontForContentSizeCategory = true
         button.addAction(UIAction { [weak self] _ in
@@ -181,10 +182,10 @@ final class FactsListCollectionViewController: UIViewController {
             showStatus(isLoading: false, message: nil)
 
         case .loading:
-            showStatus(isLoading: true, message: "Loading facts…")
+            showStatus(isLoading: true, message: viewModel.localization[.loading])
 
         case .loaded:
-            let emptyMessage = viewModel.hasActiveFilters ? "No facts found." : "No facts yet."
+            let emptyMessage = viewModel.localization[viewModel.hasActiveFilters ? .noMatches : .empty]
             showStatus(isLoading: false, message: viewModel.items.isEmpty ? emptyMessage : nil)
             applySnapshot()
 

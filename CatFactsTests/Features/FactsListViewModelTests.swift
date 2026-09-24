@@ -72,7 +72,7 @@ final class FactsListViewModelTests: XCTestCase {
         func testStubServiceFailureReachesScreenAndCanBeRetried() async {
             let service = FactsServiceStub(fetchFactsResponse: .failure(.httpStatus(503)))
             let dependencies = PreviewAppDependencies(factsService: service)
-            let viewModel = FactsListViewModel(factsService: dependencies.factsService)
+            let viewModel = FactsListViewModel(factsService: dependencies.factsService, localization: Localization(languageCode: "en"))
             var states: [FactsListViewModel.State] = []
             viewModel.onStateChange = { states.append($0) }
 
@@ -85,6 +85,38 @@ final class FactsListViewModelTests: XCTestCase {
             XCTAssertTrue(viewModel.items.isEmpty)
         }
     #endif
+
+    @MainActor
+    func testMapsErrorsToDistinctUserFacingMessages() async {
+        let cases: [(error: Error, message: String)] = [
+            (HTTPClientError.transport(.notConnectedToInternet), "You're offline. Check your internet connection and try again."),
+            (HTTPClientError.transport(.timedOut), "The request timed out. Please try again."),
+            (HTTPClientError.httpStatus(500), "The server is temporarily unavailable. Please try again."),
+            (HTTPClientError.httpStatus(599), "The server is temporarily unavailable. Please try again."),
+            (HTTPClientError.httpStatus(404), "Couldn't load facts. Please try again."),
+            (HTTPClientError.invalidResponse, "Couldn't load facts. Please try again."),
+            (FactsServiceError.invalidBaseURL, "Couldn't load facts. Please try again.")
+        ]
+
+        for testCase in cases {
+            let service = SequentialFactsServiceStub(responses: [.failure(testCase.error)])
+            let viewModel = FactsListViewModel(factsService: service, localization: Localization(languageCode: "en"))
+
+            await viewModel.loadFacts()
+
+            XCTAssertEqual(viewModel.state, .failed(testCase.message), "Error: \(testCase.error)")
+        }
+    }
+
+    @MainActor
+    func testErrorMessageUsesInjectedLanguage() async {
+        let service = SequentialFactsServiceStub(responses: [.failure(HTTPClientError.transport(.notConnectedToInternet))])
+        let viewModel = FactsListViewModel(factsService: service, localization: Localization(languageCode: "ru"))
+
+        await viewModel.loadFacts()
+
+        XCTAssertEqual(viewModel.state, .failed("Нет подключения к интернету. Проверьте соединение и попробуйте снова."))
+    }
 
     @MainActor
     func testDuplicateIDsKeepFirstOccurrenceAndPreserveOrder() async {

@@ -1,0 +1,17 @@
+"facts.title" = "Fatos sobre gatos";
+"fact.title" = "Fato sobre gatos";
+"details.title" = "Detalhes do fato";
+"search.placeholder" = "Buscar fatos";
+"status.new" = "Novo";
+"status.verified" = "Verificado";
+"status.separator" = ", ";
+"action.retry" = "Tentar novamente";
+"accessibility.retry" = "Carrega novamente os fatos sobre gatos";
+"accessibility.openDetails" = "Abre os detalhes do fato";
+"facts.loading" = "Carregando fatos…";
+"facts.empty" = "Ainda não há fatos.";
+"search.empty" = "Nenhum fato encontrado.";
+"error.offline" = "Você está offline. Verifique sua conexão com a internet e tente novamente.";
+"error.timeout" = "A solicitação demorou demais. Tente novamente.";
+"error.server" = "O servidor está temporariamente indisponível. Tente novamente.";
+"error.generic" = "Não foi possível carregar os fatos. Tente novamente.";

@@ -31,20 +31,22 @@ final class FactCell: UICollectionViewListCell {
         isAccessibilityElement = true
         contentView.accessibilityElementsHidden = true
         accessibilityTraits = .button
-        accessibilityHint = "Opens fact details"
     }
 
     required init?(coder: NSCoder) {
         nil
     }
 
-    func configure(text: String, isVerified: Bool, isNew: Bool, searchQuery: String = "") {
+    func configure(text: String, isVerified: Bool, isNew: Bool, searchQuery: String = "", localization: Localization = Localization()) {
         titleLabel.attributedText = highlightedText(text, query: searchQuery)
+        newStatusView.localize(using: localization)
+        verifiedStatusView.localize(using: localization)
         newStatusView.isHidden = !isNew
         verifiedStatusView.isHidden = !isVerified
         accessibilityLabel = text
+        accessibilityHint = localization[.openDetailsHint]
         let statuses = [newStatusView, verifiedStatusView].filter { !$0.isHidden }.compactMap(\.accessibilityLabel)
-        accessibilityValue = statuses.isEmpty ? nil : statuses.joined(separator: ", ")
+        accessibilityValue = statuses.isEmpty ? nil : statuses.joined(separator: localization[.statusSeparator])
     }
 
     private func highlightedText(_ text: String, query: String) -> NSAttributedString {

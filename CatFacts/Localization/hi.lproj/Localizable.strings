@@ -1,0 +1,17 @@
+"facts.title" = "बिल्लियों के बारे में तथ्य";
+"fact.title" = "बिल्ली के बारे में तथ्य";
+"details.title" = "तथ्य का विवरण";
+"search.placeholder" = "तथ्य खोजें";
+"status.new" = "नया";
+"status.verified" = "सत्यापित";
+"status.separator" = ", ";
+"action.retry" = "फिर कोशिश करें";
+"accessibility.retry" = "बिल्लियों के बारे में तथ्य फिर से लोड करता है";
+"accessibility.openDetails" = "तथ्य का विवरण खोलता है";
+"facts.loading" = "तथ्य लोड हो रहे हैं…";
+"facts.empty" = "अभी कोई तथ्य उपलब्ध नहीं है।";
+"search.empty" = "कोई तथ्य नहीं मिला।";
+"error.offline" = "आप ऑफ़लाइन हैं। अपना इंटरनेट कनेक्शन जाँचें और फिर कोशिश करें।";
+"error.timeout" = "अनुरोध का समय समाप्त हो गया। फिर कोशिश करें।";
+"error.server" = "सर्वर कुछ समय के लिए उपलब्ध नहीं है। फिर कोशिश करें।";
+"error.generic" = "तथ्य लोड नहीं हो सके। फिर कोशिश करें।";

@@ -36,11 +36,14 @@ final class FactsListViewModel {
     var onStateChange: ((State) -> Void)?
     var onSelectFact: ((CatFact) -> Void)?
 
+    let localization: Localization
+
     private let factsService: any FactsServiceProtocol
     private var facts: [CatFact] = []
 
-    init(factsService: any FactsServiceProtocol) {
+    init(factsService: any FactsServiceProtocol, localization: Localization = Localization()) {
         self.factsService = factsService
+        self.localization = localization
     }
 
     func loadFacts() async {
@@ -58,7 +61,7 @@ final class FactsListViewModel {
         } catch is CancellationError {
             state = previousState
         } catch {
-            state = Task.isCancelled ? previousState : .failed(Self.message(for: error))
+            state = Task.isCancelled ? previousState : .failed(message(for: error))
         }
     }
 
@@ -89,20 +92,20 @@ final class FactsListViewModel {
         onSelectFact?(fact)
     }
 
-    private static func message(for error: Error) -> String {
+    private func message(for error: Error) -> String {
         guard let error = error as? HTTPClientError else {
-            return "Couldn't load facts. Please try again."
+            return localization[.genericError]
         }
 
         switch error {
         case .transport(.notConnectedToInternet):
-            return "You're offline. Check your internet connection and try again."
+            return localization[.offlineError]
         case .transport(.timedOut):
-            return "The request timed out. Please try again."
+            return localization[.timeoutError]
         case .httpStatus(let statusCode) where (500 ..< 600).contains(statusCode):
-            return "The server is temporarily unavailable. Please try again."
+            return localization[.serverError]
         default:
-            return "Couldn't load facts. Please try again."
+            return localization[.genericError]
         }
     }
 }

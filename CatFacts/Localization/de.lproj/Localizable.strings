@@ -1,0 +1,17 @@
+"facts.title" = "Fakten über Katzen";
+"fact.title" = "Fakt über Katzen";
+"details.title" = "Details zum Fakt";
+"search.placeholder" = "Fakten suchen";
+"status.new" = "Neu";
+"status.verified" = "Verifiziert";
+"status.separator" = ", ";
+"action.retry" = "Erneut versuchen";
+"accessibility.retry" = "Lädt die Fakten über Katzen erneut";
+"accessibility.openDetails" = "Öffnet die Details zum Fakt";
+"facts.loading" = "Fakten werden geladen…";
+"facts.empty" = "Noch keine Fakten vorhanden.";
+"search.empty" = "Keine Fakten gefunden.";
+"error.offline" = "Du bist offline. Prüfe deine Internetverbindung und versuche es erneut.";
+"error.timeout" = "Die Anfrage hat zu lange gedauert. Versuche es erneut.";
+"error.server" = "Der Server ist vorübergehend nicht verfügbar. Versuche es erneut.";
+"error.generic" = "Die Fakten konnten nicht geladen werden. Versuche es erneut.";

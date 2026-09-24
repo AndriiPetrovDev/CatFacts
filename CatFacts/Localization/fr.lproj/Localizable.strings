@@ -1,0 +1,17 @@
+"facts.title" = "Infos sur les chats";
+"fact.title" = "Info sur les chats";
+"details.title" = "Détails";
+"search.placeholder" = "Rechercher des infos";
+"status.new" = "Nouveau";
+"status.verified" = "Vérifié";
+"status.separator" = ", ";
+"action.retry" = "Réessayer";
+"accessibility.retry" = "Recharge les infos sur les chats";
+"accessibility.openDetails" = "Ouvre les détails de l’info";
+"facts.loading" = "Chargement des infos…";
+"facts.empty" = "Aucune info pour le moment.";
+"search.empty" = "Aucune info trouvée.";
+"error.offline" = "Vous êtes hors ligne. Vérifiez votre connexion Internet et réessayez.";
+"error.timeout" = "Le délai de la requête a expiré. Réessayez.";
+"error.server" = "Le serveur est temporairement indisponible. Réessayez.";
+"error.generic" = "Impossible de charger les infos. Réessayez.";

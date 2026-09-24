@@ -22,7 +22,7 @@ final class FactsListViewController: UIViewController {
         controller.obscuresBackgroundDuringPresentation = false
         controller.hidesNavigationBarDuringPresentation = false
         controller.searchBar.delegate = self
-        controller.searchBar.placeholder = "Search facts"
+        controller.searchBar.placeholder = viewModel.localization[.searchPlaceholder]
         controller.searchBar.text = viewModel.searchQuery
         controller.searchBar.autocapitalizationType = .none
         controller.searchBar.autocorrectionType = .no
@@ -31,8 +31,8 @@ final class FactsListViewController: UIViewController {
     }()
 
     private lazy var filterButtons = [
-        makeFilterButton(title: "Verified", filter: .verified),
-        makeFilterButton(title: "New", filter: .new)
+        makeFilterButton(title: viewModel.localization[.verified], filter: .verified),
+        makeFilterButton(title: viewModel.localization[.new], filter: .new)
     ]
 
     private lazy var filterBar: UIStackView = {
@@ -69,7 +69,7 @@ final class FactsListViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        title = "Cat Facts"
+        title = viewModel.localization[.factsTitle]
         navigationItem.largeTitleDisplayMode = .always
         definesPresentationContext = true
         view.backgroundColor = .systemGroupedBackground
@@ -248,6 +248,12 @@ final class FactsListViewController: UIViewController {
             ? max(0, view.bounds.maxY - keyboardFrame.minY)
             : 0
         view.setNeedsLayout()
+        if UIAccessibility.isReduceMotionEnabled {
+            UIView.performWithoutAnimation {
+                self.view.layoutIfNeeded()
+            }
+            return
+        }
         let duration = userInfo[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double ?? 0.25
         let curve = userInfo[UIResponder.keyboardAnimationCurveUserInfoKey] as? UInt ?? 0
         let options = UIView.AnimationOptions(rawValue: curve << 16).union(.beginFromCurrentState)
@@ -282,14 +288,17 @@ extension FactsListViewController: UISearchBarDelegate {
 }
 
 #if DEBUG
+    import SwiftUI
+
     @available(iOS 26.0, *)
     @MainActor
     private func makeFactsListViewControllerPreview(
         factsService: FactsServiceStub = FactsServiceStub(fetchFactsResponse: .success(CatFactFixtures.list)),
         style: UIUserInterfaceStyle = .light,
-        contentSize: UIContentSizeCategory = .large
+        contentSize: UIContentSizeCategory = .large,
+        localization: Localization = Localization()
     ) -> UINavigationController {
-        let viewModel = FactsListViewModel(factsService: factsService)
+        let viewModel = FactsListViewModel(factsService: factsService, localization: localization)
         let controller = FactsListViewController(viewModel: viewModel)
         let navigationController = UINavigationController(rootViewController: controller)
         navigationController.navigationBar.prefersLargeTitles = true
@@ -309,8 +318,40 @@ extension FactsListViewController: UISearchBarDelegate {
     }
 
     @available(iOS 26.0, *)
-    #Preview("Failed") {
+    #Preview("Error · Server") {
         makeFactsListViewControllerPreview(factsService: FactsServiceStub(fetchFactsResponse: .failure(.httpStatus(503))))
+    }
+
+    @available(iOS 26.0, *)
+    #Preview("Error · Offline") {
+        makeFactsListViewControllerPreview(factsService: FactsServiceStub(fetchFactsResponse: .failure(.transport(.notConnectedToInternet))))
+    }
+
+    @available(iOS 26.0, *)
+    #Preview("Error · Timeout") {
+        makeFactsListViewControllerPreview(factsService: FactsServiceStub(fetchFactsResponse: .failure(.transport(.timedOut))))
+    }
+
+    @available(iOS 26.0, *)
+    #Preview("Error · Generic") {
+        makeFactsListViewControllerPreview(factsService: FactsServiceStub(fetchFactsResponse: .failure(.invalidResponse)))
+    }
+
+    @available(iOS 26.0, *)
+    #Preview("Languages · List") {
+        LocalizedPreview { localization in
+            makeFactsListViewControllerPreview(localization: localization)
+        }
+    }
+
+    @available(iOS 26.0, *)
+    #Preview("Languages · Offline") {
+        LocalizedPreview { localization in
+            makeFactsListViewControllerPreview(
+                factsService: FactsServiceStub(fetchFactsResponse: .failure(.transport(.notConnectedToInternet))),
+                localization: localization
+            )
+        }
     }
 
     @available(iOS 26.0, *)
