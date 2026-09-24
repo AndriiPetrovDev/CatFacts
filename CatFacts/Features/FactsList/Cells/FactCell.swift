@@ -95,13 +95,31 @@ final class FactCell: UICollectionViewListCell {
         nil
     }
 
-    func configure(text: String, isVerified: Bool, isNew: Bool) {
-        titleLabel.text = text
+    func configure(text: String, isVerified: Bool, isNew: Bool, searchQuery: String = "") {
+        titleLabel.attributedText = highlightedText(text, query: searchQuery)
         newStack.isHidden = !isNew
         verifiedStack.isHidden = !isVerified
         accessibilityLabel = text
         let statuses = [isNew ? "New" : nil, isVerified ? "Verified" : nil].compactMap { $0 }
         accessibilityValue = statuses.isEmpty ? nil : statuses.joined(separator: ", ")
+    }
+
+    private func highlightedText(_ text: String, query: String) -> NSAttributedString {
+        let attributedText = NSMutableAttributedString(string: text)
+        guard !query.isEmpty else { return attributedText }
+
+        var searchRange = text.startIndex..<text.endIndex
+        while let range = text.range(of: query, options: .caseInsensitive, range: searchRange, locale: .current),
+              !range.isEmpty {
+            attributedText.addAttribute(
+                .backgroundColor,
+                value: UIColor.systemYellow.withAlphaComponent(0.35),
+                range: NSRange(range, in: text)
+            )
+            searchRange = range.upperBound..<text.endIndex
+        }
+
+        return attributedText
     }
 }
 

@@ -9,7 +9,25 @@ final class FactsListViewModel {
         case failed(String)
     }
 
-    private(set) var items: [CatFact] = []
+    enum SearchFilter: Int {
+        case verified
+        case new
+    }
+
+    var items: [CatFact] {
+        facts.filter { fact in
+            (searchQuery.isEmpty || fact.text.localizedCaseInsensitiveContains(searchQuery))
+                && (!searchFilters.contains(.verified) || fact.isVerified)
+                && (!searchFilters.contains(.new) || fact.isNew)
+        }
+    }
+
+    var hasActiveFilters: Bool {
+        !searchQuery.isEmpty || !searchFilters.isEmpty
+    }
+
+    private(set) var searchQuery = ""
+    private(set) var searchFilters: Set<SearchFilter> = []
     private(set) var state: State = .idle {
         didSet { onStateChange?(state) }
     }
@@ -18,6 +36,7 @@ final class FactsListViewModel {
     var onSelectFact: ((CatFact) -> Void)?
 
     private let factsService: any FactsServiceProtocol
+    private var facts: [CatFact] = []
 
     init(factsService: any FactsServiceProtocol) {
         self.factsService = factsService
@@ -38,7 +57,7 @@ final class FactsListViewModel {
                 return
             }
 
-            items = facts
+            self.facts = facts
             state = .loaded
         } catch is CancellationError {
             state = previousState
@@ -47,8 +66,26 @@ final class FactsListViewModel {
         }
     }
 
+    func updateSearchQuery(_ query: String) {
+        let query = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard searchQuery != query else { return }
+        searchQuery = query
+        if state == .loaded {
+            onStateChange?(state)
+        }
+    }
+
+    func toggleSearchFilter(_ filter: SearchFilter) {
+        if !searchFilters.insert(filter).inserted {
+            searchFilters.remove(filter)
+        }
+        if state == .loaded {
+            onStateChange?(state)
+        }
+    }
+
     func fact(withID id: CatFact.ID) -> CatFact? {
-        items.first { $0.id == id }
+        facts.first { $0.id == id }
     }
 
     func selectFact(withID id: CatFact.ID) {
