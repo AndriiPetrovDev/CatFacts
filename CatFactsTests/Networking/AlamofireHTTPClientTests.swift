@@ -21,10 +21,9 @@ final class AlamofireHTTPClientTests: XCTestCase {
     func testMapsHTTPStatusError() async throws {
         let request = try request(for: .serverError)
 
-        do {
-            _ = try await makeClient().send(request)
-            XCTFail("Expected an HTTP error")
-        } catch {
+        await assertThrowsError("Expected an HTTP error") {
+            try await makeClient().send(request)
+        } verify: { error in
             XCTAssertEqual(error as? HTTPClientError, .httpStatus(503))
         }
     }
@@ -32,10 +31,9 @@ final class AlamofireHTTPClientTests: XCTestCase {
     func testPreservesTransportErrorCode() async throws {
         let request = try request(for: .offline)
 
-        do {
-            _ = try await makeClient().send(request)
-            XCTFail("Expected a transport error")
-        } catch {
+        await assertThrowsError("Expected a transport error") {
+            try await makeClient().send(request)
+        } verify: { error in
             XCTAssertEqual(error as? HTTPClientError, .transport(.notConnectedToInternet))
         }
     }
@@ -43,12 +41,10 @@ final class AlamofireHTTPClientTests: XCTestCase {
     func testReportsCancellationSeparatelyFromNetworkErrors() async throws {
         let request = try request(for: .cancelled)
 
-        do {
-            _ = try await makeClient().send(request)
-            XCTFail("Expected cancellation")
-        } catch is CancellationError {
-        } catch {
-            XCTFail("Unexpected error: \(error)")
+        await assertThrowsError("Expected cancellation") {
+            try await makeClient().send(request)
+        } verify: { error in
+            XCTAssertTrue(error is CancellationError, "Unexpected error: \(error)")
         }
     }
 

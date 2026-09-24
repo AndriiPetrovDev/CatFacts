@@ -20,11 +20,7 @@ final class CatFactsUITests: XCTestCase {
         XCTAssertEqual(selectedFact.value as? String, "New, Verified")
         selectedFact.tap()
 
-        let details = app.staticTexts["facts.details.text"]
-        XCTAssertTrue(details.waitForExistence(timeout: 5))
-        XCTAssertEqual(details.label, "Cats purr to communicate.")
-        XCTAssertTrue(app.staticTexts["fact.status.new"].exists)
-        XCTAssertTrue(app.staticTexts["fact.status.verified"].exists)
+        assertDetails(text: "Cats purr to communicate.", isNew: true, isVerified: true, in: app)
 
         app.navigationBars["Fact Details"].buttons.firstMatch.tap()
 
@@ -75,11 +71,7 @@ final class CatFactsUITests: XCTestCase {
         XCTAssertEqual(recoveredFact.value as? String, "Verified")
         recoveredFact.tap()
 
-        let details = app.staticTexts["facts.details.text"]
-        XCTAssertTrue(details.waitForExistence(timeout: 5))
-        XCTAssertEqual(details.label, "Some cats purr softly.")
-        XCTAssertTrue(app.staticTexts["fact.status.verified"].exists)
-        XCTAssertFalse(app.staticTexts["fact.status.new"].exists)
+        assertDetails(text: "Some cats purr softly.", isNew: false, isVerified: true, in: app)
     }
 
     func testScrollingHidesAndRestoresSearchWithoutLosingQueryOrFilter() {
@@ -147,6 +139,21 @@ final class CatFactsUITests: XCTestCase {
         waitUntil("Expected facts: \(ids)", file: file, line: line) {
             items.allElementsBoundByIndex.map(\.identifier) == expectedIDs
         }
+    }
+
+    private func assertDetails(
+        text: String,
+        isNew: Bool,
+        isVerified: Bool,
+        in app: XCUIApplication,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) {
+        let details = app.staticTexts["facts.details.text"]
+        XCTAssertTrue(details.waitForExistence(timeout: 5), file: file, line: line)
+        XCTAssertEqual(details.label, text, file: file, line: line)
+        XCTAssertEqual(app.staticTexts["fact.status.new"].exists, isNew, "New status", file: file, line: line)
+        XCTAssertEqual(app.staticTexts["fact.status.verified"].exists, isVerified, "Verified status", file: file, line: line)
     }
 
     private func waitUntil(_ message: String, file: StaticString = #filePath, line: UInt = #line, condition: @escaping () -> Bool) {

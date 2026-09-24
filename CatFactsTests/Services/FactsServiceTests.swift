@@ -178,37 +178,35 @@ final class FactsServiceTests: XCTestCase {
         ]
 
         for testCase in cases {
-            do {
-                _ = try await decodeResponse("[\(validFactJSON),\(testCase.record)]")
-                XCTFail("Expected the entire response to fail: \(testCase.name)")
-            } catch FactsServiceError.decoding(let error) {
+            await assertThrowsError("Expected the entire response to fail: \(testCase.name)") {
+                try await decodeResponse("[\(validFactJSON),\(testCase.record)]")
+            } verify: { error in
+                guard case FactsServiceError.decoding(let decodingError) = error else {
+                    return XCTFail("Unexpected error for \(testCase.name): \(error)")
+                }
                 let path: [any CodingKey]
-                switch error {
+                switch decodingError {
                 case .keyNotFound(let key, let context):
                     path = context.codingPath + [key]
                 case .typeMismatch(_, let context), .valueNotFound(_, let context), .dataCorrupted(let context):
                     path = context.codingPath
                 @unknown default:
-                    XCTFail("Unexpected decoding error: \(error)")
-                    continue
+                    return XCTFail("Unexpected decoding error: \(decodingError)")
                 }
                 XCTAssertEqual(path.first?.intValue, 1, testCase.name)
                 XCTAssertEqual(path.last?.stringValue, testCase.field, testCase.name)
-            } catch {
-                XCTFail("Unexpected error for \(testCase.name): \(error)")
             }
         }
     }
 
     func testRejectsEmptyBodyMalformedJSONAndNonArrayResponse() async {
         for body in ["", "not JSON", "[", "{}", "null", "42", #""Cat fact""#, "[null]", "[42]", #"["Cat fact"]"#] {
-            do {
-                _ = try await decodeResponse(body)
-                XCTFail("Expected a decoding error for body: \(body.debugDescription)")
-            } catch FactsServiceError.decoding(let error) {
-                print("Expected decoding error for body \(body.debugDescription): \(error)")
-            } catch {
-                XCTFail("Unexpected error for body \(body.debugDescription): \(error)")
+            await assertThrowsError("Expected a decoding error for body: \(body.debugDescription)") {
+                try await decodeResponse(body)
+            } verify: { error in
+                guard case FactsServiceError.decoding = error else {
+                    return XCTFail("Unexpected error for body \(body.debugDescription): \(error)")
+                }
             }
         }
     }
@@ -217,10 +215,9 @@ final class FactsServiceTests: XCTestCase {
         let client = HTTPClientStub(result: .failure(HTTPClientError.httpStatus(503)))
         let service = FactsService(httpClient: client, baseURL: baseURL)
 
-        do {
-            _ = try await service.fetchFacts()
-            XCTFail("Expected an HTTP error")
-        } catch {
+        await assertThrowsError("Expected an HTTP error") {
+            try await service.fetchFacts()
+        } verify: { error in
             XCTAssertEqual(error as? HTTPClientError, .httpStatus(503))
         }
     }
@@ -229,18 +226,12 @@ final class FactsServiceTests: XCTestCase {
         let client = HTTPClientStub(result: .success(Data("[]".utf8)))
         let service = FactsService(httpClient: client, baseURL: "file:///facts.json")
 
-        do {
-            _ = try await service.fetchFacts()
-            XCTFail("Expected a base URL error")
-        } catch let error as FactsServiceError {
-            switch error {
-            case .invalidBaseURL:
-                print("Expected base URL error: \(error)")
-            default:
-                XCTFail("Unexpected error: \(error)")
+        await assertThrowsError("Expected a base URL error") {
+            try await service.fetchFacts()
+        } verify: { error in
+            guard case FactsServiceError.invalidBaseURL = error else {
+                return XCTFail("Unexpected error: \(error)")
             }
-        } catch {
-            XCTFail("Unexpected error: \(error)")
         }
 
         let requests = await client.requests
@@ -255,13 +246,10 @@ final class FactsServiceTests: XCTestCase {
             return try await service.fetchFacts()
         }
 
-        do {
-            _ = try await task.value
-            XCTFail("Expected cancellation")
-        } catch let error as CancellationError {
-            print("Expected cancellation error: \(error)")
-        } catch {
-            XCTFail("Unexpected error: \(error)")
+        await assertThrowsError("Expected cancellation") {
+            try await task.value
+        } verify: { error in
+            XCTAssertTrue(error is CancellationError, "Unexpected error: \(error)")
         }
 
         let requests = await client.requests

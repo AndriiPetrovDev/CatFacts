@@ -154,9 +154,7 @@ final class FactsListViewModelTests: XCTestCase {
             makeFact(id: "second", text: "Cats use their whiskers to sense nearby objects."),
             makeFact(id: "third", text: "Kittens also purr.")
         ]
-        let service = SequentialFactsServiceStub(responses: [.success(facts)])
-        let viewModel = FactsListViewModel(factsService: service)
-        await viewModel.loadFacts()
+        let viewModel = await makeLoadedViewModel(facts: facts)
         let cases: [(query: String, expectedIDs: [String], hasActiveFilters: Bool)] = [
             ("purr", ["first", "third"], true),
             ("PuRr", ["first", "third"], true),
@@ -193,9 +191,7 @@ final class FactsListViewModelTests: XCTestCase {
         ]
 
         for testCase in cases {
-            let service = SequentialFactsServiceStub(responses: [.success(facts)])
-            let viewModel = FactsListViewModel(factsService: service)
-            await viewModel.loadFacts()
+            let viewModel = await makeLoadedViewModel(facts: facts)
 
             viewModel.updateSearchQuery(testCase.query)
             for filter in testCase.filters {
@@ -214,9 +210,7 @@ final class FactsListViewModelTests: XCTestCase {
 
     func testChangingAndClearingSearchPreservesFiltersUntilTheyAreToggledOff() async {
         let facts = makeSearchFacts()
-        let service = SequentialFactsServiceStub(responses: [.success(facts)])
-        let viewModel = FactsListViewModel(factsService: service)
-        await viewModel.loadFacts()
+        let viewModel = await makeLoadedViewModel(facts: facts)
 
         viewModel.toggleSearchFilter(.new)
         viewModel.toggleSearchFilter(.verified)
@@ -263,6 +257,13 @@ final class FactsListViewModelTests: XCTestCase {
         ])
         let requestCount = await service.requestCount
         XCTAssertEqual(requestCount, 1)
+    }
+
+    private func makeLoadedViewModel(facts: [CatFact]) async -> FactsListViewModel {
+        let service = SequentialFactsServiceStub(responses: [.success(facts)])
+        let viewModel = FactsListViewModel(factsService: service)
+        await viewModel.loadFacts()
+        return viewModel
     }
 
     private func makeSearchFacts() -> [CatFact] {

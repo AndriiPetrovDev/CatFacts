@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		B347811403F44DA593A42B02 /* AsyncAssertions.swift in Sources */ = {isa = PBXBuildFile; fileRef = B347811403F44DA593A42B01 /* AsyncAssertions.swift */; };
 		07E21BAA49C84A619D930101 /* AppLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07E21BAA49C84A619D930100 /* AppLayout.swift */; };
 		07E21BAA49C84A619D930102 /* AppLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07E21BAA49C84A619D930100 /* AppLayout.swift */; };
 		03CA158A17954828B7D04701 /* Algorithms in Frameworks */ = {isa = PBXBuildFile; productRef = 03CA158A17954828B7D04702 /* Algorithms */; };
@@ -106,6 +107,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		B347811403F44DA593A42B01 /* AsyncAssertions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AsyncAssertions.swift; sourceTree = "<group>"; };
 		07E21BAA49C84A619D930100 /* AppLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLayout.swift; sourceTree = "<group>"; };
 		126E10C823ED401C8A1B4202 /* FactStatusView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FactStatusView.swift; sourceTree = "<group>"; };
 		19D0999FE693702787BE08D7 /* HTTPClientError.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HTTPClientError.swift; sourceTree = "<group>"; };
@@ -205,6 +207,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		B347811403F44DA593A42B03 /* Support */ = {
+			isa = PBXGroup;
+			children = (
+				B347811403F44DA593A42B01 /* AsyncAssertions.swift */,
+			);
+			path = Support;
+			sourceTree = "<group>";
+		};
 		077E2D03C798BAACF1D4AA92 /* Services */ = {
 			isa = PBXGroup;
 			children = (
@@ -380,6 +390,7 @@
 		88CFD41726136D3B0090B26A /* CatFactsTests */ = {
 			isa = PBXGroup;
 			children = (
+				B347811403F44DA593A42B03 /* Support */,
 				88CFD41A26136D3B0090B26A /* Info.plist */,
 				A91F90C9230B400A0000000A /* Localization */,
 				819B18A718D6D135CE00C2F0 /* Networking */,
@@ -741,6 +752,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B347811403F44DA593A42B02 /* AsyncAssertions.swift in Sources */,
 				95D19B91254169DC96FF66B1 /* AlamofireHTTPClientTests.swift in Sources */,
 				156652BA6446CA1821CD834E /* FactsServiceTests.swift in Sources */,
 				1C6B0E8D6CF995F6131BCC35 /* FactsListViewModelTests.swift in Sources */,

@@ -73,15 +73,7 @@ final class CatFactTests: XCTestCase {
             expiredOneSecondAfter90Days
         ]
 
-        for testCase in cases {
-            let now = try date(testCase.now)
-
-            XCTAssertEqual(
-                fact.isNew(relativeTo: now),
-                testCase.expectedIsNew,
-                "New York spring transition, now: \(testCase.now)"
-            )
-        }
+        try assertFreshness(of: fact, cases: cases, message: "New York spring transition")
     }
 
     func testExpiredFactDoesNotBecomeNewAgainWhenNewYorkClocksMoveBack() throws {
@@ -114,13 +106,25 @@ final class CatFactTests: XCTestCase {
             stillExpiredOneHourAfterClockChange
         ]
 
+        try assertFreshness(of: fact, cases: cases, message: "New York autumn transition")
+    }
+
+    private func assertFreshness(
+        of fact: CatFact,
+        cases: [(now: String, expectedIsNew: Bool)],
+        message: String,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) throws {
         for testCase in cases {
-            let now = try date(testCase.now)
+            let now = try date(testCase.now, file: file, line: line)
 
             XCTAssertEqual(
                 fact.isNew(relativeTo: now),
                 testCase.expectedIsNew,
-                "New York autumn transition, now: \(testCase.now)"
+                "\(message), now: \(testCase.now)",
+                file: file,
+                line: line
             )
         }
     }
@@ -129,7 +133,7 @@ final class CatFactTests: XCTestCase {
         try CatFact(id: "fact", text: "Cat fact", createdAt: date(createdAt), isVerified: false)
     }
 
-    private func date(_ value: String) throws -> Date {
-        try XCTUnwrap(ISO8601DateFormatter().date(from: value))
+    private func date(_ value: String, file: StaticString = #filePath, line: UInt = #line) throws -> Date {
+        try XCTUnwrap(ISO8601DateFormatter().date(from: value), value, file: file, line: line)
     }
 }
