@@ -1,4 +1,5 @@
 import UIKit
+import SnapKit
 
 final class FactsListViewController: UIViewController {
     private enum Section {
@@ -8,24 +9,63 @@ final class FactsListViewController: UIViewController {
     private let viewModel: FactsListViewModel
     private var loadTask: Task<Void, Never>?
 
-    private lazy var contentView: FactsListView = {
-        let view = FactsListView()
-        view.collectionView.delegate = self
-        view.retryButton.addTarget(self, action: #selector(loadFacts), for: .touchUpInside)
-        return view
-    }()
-
     private lazy var dataSource: UICollectionViewDiffableDataSource<Section, CatFact.ID> = {
         let registration = UICollectionView.CellRegistration<FactCell, CatFact> { cell, _, fact in
             cell.configure(text: fact.text, isVerified: fact.isVerified, isNew: fact.isNew)
         }
 
         let viewModel = viewModel
-        return UICollectionViewDiffableDataSource<Section, CatFact.ID>(collectionView: contentView.collectionView) { collectionView, indexPath, id in
+        return UICollectionViewDiffableDataSource<Section, CatFact.ID>(collectionView: collectionView) { collectionView, indexPath, id in
             guard let fact = viewModel.fact(withID: id) else { return nil }
             return collectionView.dequeueConfiguredReusableCell(using: registration, for: indexPath, item: fact)
         }
     }()
+
+    // MARK: - UI
+
+    private lazy var collectionView: UICollectionView = {
+        let configuration = UICollectionLayoutListConfiguration(appearance: .insetGrouped)
+        let layout = UICollectionViewCompositionalLayout.list(using: configuration)
+        let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
+        collectionView.backgroundColor = .systemGroupedBackground
+        collectionView.alwaysBounceVertical = true
+        collectionView.delegate = self
+        return collectionView
+    }()
+
+    private lazy var activityIndicator = UIActivityIndicatorView(style: .medium)
+
+    private lazy var messageLabel: UILabel = {
+        let label = UILabel()
+        label.font = .preferredFont(forTextStyle: .body)
+        label.adjustsFontForContentSizeCategory = true
+        label.textColor = .secondaryLabel
+        label.numberOfLines = 0
+        label.textAlignment = .center
+        return label
+    }()
+
+    private lazy var retryButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.setTitle("Try Again", for: .normal)
+        button.titleLabel?.font = .preferredFont(forTextStyle: .body)
+        button.titleLabel?.adjustsFontForContentSizeCategory = true
+        button.addAction(UIAction { [weak self] _ in
+            self?.loadFacts()
+        }, for: .touchUpInside)
+        return button
+    }()
+
+    private lazy var statusStack: UIStackView = {
+        let stack = UIStackView(arrangedSubviews: [activityIndicator, messageLabel, retryButton])
+        stack.axis = .vertical
+        stack.alignment = .center
+        stack.spacing = 16
+        stack.isHidden = true
+        return stack
+    }()
+
+    // MARK: - Lifecycle
 
     init(viewModel: FactsListViewModel) {
         self.viewModel = viewModel
@@ -40,23 +80,53 @@ final class FactsListViewController: UIViewController {
         loadTask?.cancel()
     }
 
-    override func loadView() {
-        view = contentView
-    }
-
     override func viewDidLoad() {
         super.viewDidLoad()
-        title = "Cat Facts"
-        navigationItem.largeTitleDisplayMode = .always
-
-        viewModel.onStateChange = { [weak self] state in
-            self?.render(state)
-        }
+        setupView()
+        setupConstraints()
+        bindViewModel()
         render(viewModel.state)
         loadFacts()
     }
 
-    @objc private func loadFacts() {
+    // MARK: - Setup
+
+    private func setupView() {
+        title = "Cat Facts"
+        navigationItem.largeTitleDisplayMode = .always
+        view.backgroundColor = .systemGroupedBackground
+        view.addSubview(collectionView)
+        view.addSubview(statusStack)
+    }
+
+    private func setupConstraints() {
+        collectionView.snp.makeConstraints { make in
+            make.edges.equalToSuperview()
+        }
+
+        statusStack.snp.makeConstraints { make in
+            make.centerY.equalTo(view.safeAreaLayoutGuide)
+            make.leading.trailing.equalTo(view.safeAreaLayoutGuide).inset(24)
+        }
+
+        messageLabel.snp.makeConstraints { make in
+            make.width.equalToSuperview()
+        }
+
+        retryButton.snp.makeConstraints { make in
+            make.height.greaterThanOrEqualTo(44).priority(.high)
+        }
+    }
+
+    // MARK: - Data
+
+    private func bindViewModel() {
+        viewModel.onStateChange = { [weak self] state in
+            self?.render(state)
+        }
+    }
+
+    private func loadFacts() {
         guard loadTask == nil else { return }
         let viewModel = viewModel
         loadTask = Task { [weak self] in
@@ -65,21 +135,37 @@ final class FactsListViewController: UIViewController {
         }
     }
 
+    // MARK: - Rendering
+
     private func render(_ state: FactsListViewModel.State) {
         switch state {
         case .idle:
-            contentView.showStatus(isLoading: false, message: nil)
+            showStatus(isLoading: false, message: nil)
 
         case .loading:
-            contentView.showStatus(isLoading: true, message: "Loading facts…")
+            showStatus(isLoading: true, message: "Loading facts…")
 
         case .loaded:
             applySnapshot()
-            contentView.showStatus(isLoading: false, message: viewModel.items.isEmpty ? "No facts yet." : nil)
+            showStatus(isLoading: false, message: viewModel.items.isEmpty ? "No facts yet." : nil)
 
         case .failed(let message):
-            contentView.showStatus(isLoading: false, message: message, canRetry: true)
+            showStatus(isLoading: false, message: message, canRetry: true)
         }
+    }
+
+    private func showStatus(isLoading: Bool, message: String?, canRetry: Bool = false) {
+        if isLoading {
+            activityIndicator.startAnimating()
+        } else {
+            activityIndicator.stopAnimating()
+        }
+        activityIndicator.isHidden = !isLoading
+        messageLabel.text = message
+        messageLabel.isHidden = message == nil
+        retryButton.isHidden = !canRetry
+        statusStack.isHidden = !isLoading && message == nil
+        collectionView.isHidden = !statusStack.isHidden
     }
 
     private func applySnapshot() {
