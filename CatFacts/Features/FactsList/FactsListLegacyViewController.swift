@@ -105,9 +105,7 @@ final class FactsListLegacyViewController: UIViewController {
         navigationItem.standardAppearance = appearance
         navigationItem.scrollEdgeAppearance = appearance
         navigationItem.compactAppearance = appearance
-        if #available(iOS 15.0, *) {
-            navigationItem.compactScrollEdgeAppearance = appearance
-        }
+        navigationItem.compactScrollEdgeAppearance = appearance
 
         addChild(collectionController)
         view.addSubview(collectionController.view)
@@ -116,9 +114,7 @@ final class FactsListLegacyViewController: UIViewController {
         setupConstraints()
         setSearchPanelCollapsed(!viewModel.canSearch)
         collectionController.didMove(toParent: self)
-        if #available(iOS 15.0, *) {
-            setContentScrollView(collectionController.scrollView, for: .top)
-        }
+        setContentScrollView(collectionController.scrollView, for: .top)
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(keyboardFrameDidChange(_:)),
@@ -232,30 +228,21 @@ final class FactsListLegacyViewController: UIViewController {
     }
 
     private func makeFilterButton(title: String, filter: FactsListViewModel.SearchFilter) -> UIButton {
+        var configuration = UIButton.Configuration.filled()
+        configuration.cornerStyle = .medium
+        configuration.title = title
+        configuration.buttonSize = .medium
+
         let button = UIButton(type: .system)
+        button.configuration = configuration
         button.accessibilityIdentifier = filter == .verified ? "facts.filter.verified" : "facts.filter.new"
         button.tag = filter.rawValue
-        button.setTitle(title, for: .normal)
         button.titleLabel?.adjustsFontForContentSizeCategory = true
-
-        if #available(iOS 15.0, *) {
-            button.configuration = .tinted()
-            button.configurationUpdateHandler = { button in
-                var configuration = UIButton.Configuration.filled()
-                configuration.baseBackgroundColor = button.isSelected ? button.tintColor : .systemGray5
-                configuration.baseForegroundColor = button.isSelected ? .white : .label
-                configuration.cornerStyle = .medium
-                configuration.title = title
-                configuration.buttonSize = .medium
-                button.configuration = configuration
-            }
-        } else {
-            button.titleLabel?.font = .preferredFont(forTextStyle: .body)
-            button.backgroundColor = .systemGray5
-            button.layer.cornerRadius = 8
-            button.contentEdgeInsets = UIEdgeInsets(top: AppLayout.spacing, left: 12, bottom: AppLayout.spacing, right: 12)
-            button.setImage(UIImage(systemName: "checkmark"), for: .selected)
-            button.setPreferredSymbolConfiguration(UIImage.SymbolConfiguration(textStyle: .body), forImageIn: .selected)
+        button.configurationUpdateHandler = { button in
+            guard var configuration = button.configuration else { return }
+            configuration.baseBackgroundColor = button.isSelected ? button.tintColor : .systemGray5
+            configuration.baseForegroundColor = button.isSelected ? .white : .label
+            button.configuration = configuration
         }
 
         button.addAction(UIAction { [weak self] _ in
@@ -271,12 +258,6 @@ final class FactsListLegacyViewController: UIViewController {
             guard let filter = FactsListViewModel.SearchFilter(rawValue: button.tag) else { continue }
             button.isSelected = viewModel.searchFilters.contains(filter)
             button.accessibilityTraits = button.isSelected ? [.button, .selected] : [.button]
-            if #available(iOS 15.0, *) {
-                button.setNeedsUpdateConfiguration()
-            } else {
-                button.backgroundColor = button.isSelected ? .systemBlue : .systemGray5
-                button.tintColor = button.isSelected ? .white : .label
-            }
         }
     }
 
@@ -332,7 +313,6 @@ extension FactsListLegacyViewController: UISearchBarDelegate {
 #if DEBUG
     import SwiftUI
 
-    @available(iOS 17.0, *)
     @MainActor
     private func makeFactsListLegacyViewControllerPreview(
         factsService: FactsServiceStub = FactsServiceStub(fetchFactsResponse: .success(CatFactFixtures.list)),
@@ -348,62 +328,50 @@ extension FactsListLegacyViewController: UISearchBarDelegate {
         return navigationController
     }
 
-    @available(iOS 17.0, *)
     #Preview("Loaded · Light · Default") {
         makeFactsListLegacyViewControllerPreview()
     }
 
-    @available(iOS 17.0, *)
     #Preview("Duplicate IDs") {
         makeFactsListLegacyViewControllerPreview(factsService: FactsServiceStub(fetchFactsResponse: .success(CatFactFixtures.listWithDuplicateIDs)))
     }
 
-    @available(iOS 17.0, *)
     #Preview("Error · Server") {
         makeFactsListLegacyViewControllerPreview(factsService: FactsServiceStub(fetchFactsResponse: .failure(.httpStatus(503))))
     }
 
-    @available(iOS 17.0, *)
     #Preview("Error · Offline") {
         makeFactsListLegacyViewControllerPreview(factsService: FactsServiceStub(fetchFactsResponse: .failure(.transport(.notConnectedToInternet))))
     }
 
-    @available(iOS 17.0, *)
     #Preview("Error · Timeout") {
         makeFactsListLegacyViewControllerPreview(factsService: FactsServiceStub(fetchFactsResponse: .failure(.transport(.timedOut))))
     }
 
-    @available(iOS 17.0, *)
     #Preview("Error · Generic") {
         makeFactsListLegacyViewControllerPreview(factsService: FactsServiceStub(fetchFactsResponse: .failure(.invalidResponse)))
     }
 
-    @available(iOS 17.0, *)
     #Preview("Empty") {
         makeFactsListLegacyViewControllerPreview(factsService: FactsServiceStub(fetchFactsResponse: .success([])))
     }
 
-    @available(iOS 17.0, *)
     #Preview("Loading") {
         makeFactsListLegacyViewControllerPreview(factsService: FactsServiceStub(fetchFactsResponse: .loading))
     }
 
-    @available(iOS 17.0, *)
     #Preview("Slow Internet · 2s") {
         makeFactsListLegacyViewControllerPreview(factsService: FactsServiceStub(fetchFactsResponse: .slowInternet(CatFactFixtures.list)))
     }
 
-    @available(iOS 17.0, *)
     #Preview("Loaded · Light · XXXL") {
         makeFactsListLegacyViewControllerPreview(contentSize: .extraExtraExtraLarge)
     }
 
-    @available(iOS 17.0, *)
     #Preview("Loaded · Light · Accessibility XXXL") {
         makeFactsListLegacyViewControllerPreview(contentSize: .accessibilityExtraExtraExtraLarge)
     }
 
-    @available(iOS 17.0, *)
     #Preview("Loaded · Dark · Default") {
         makeFactsListLegacyViewControllerPreview(style: .dark)
     }

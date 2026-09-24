@@ -111,13 +111,11 @@ final class FactsListViewController: UIViewController {
         super.viewDidLayoutSubviews()
         let keyboardInset = max(0, keyboardOverlap - view.safeAreaInsets.bottom)
         var panelBottomInset = AppLayout.spacing + keyboardInset
-        if usesSearchToolbar, !isSearchPanelHidden,
-           let window = view.window,
-           searchController.searchBar.window === window {
-            let searchFrame = searchController.searchBar.convert(searchController.searchBar.bounds, to: view)
-            searchToolbarBottomInset = max(AppLayout.spacing, view.safeAreaLayoutGuide.layoutFrame.maxY - searchFrame.minY + AppLayout.spacing - keyboardInset)
-        }
         if usesSearchToolbar, !isSearchPanelHidden {
+            if let window = view.window, searchController.searchBar.window === window {
+                let searchFrame = searchController.searchBar.convert(searchController.searchBar.bounds, to: view)
+                searchToolbarBottomInset = max(AppLayout.spacing, view.safeAreaLayoutGuide.layoutFrame.maxY - searchFrame.minY + AppLayout.spacing - keyboardInset)
+            }
             panelBottomInset = searchToolbarBottomInset + keyboardInset
         }
         if abs(searchPanelBottomInset - panelBottomInset) > 0.5 {
@@ -175,9 +173,7 @@ final class FactsListViewController: UIViewController {
         let button = UIButton(type: .system)
         button.accessibilityIdentifier = filter == .verified ? "facts.filter.verified" : "facts.filter.new"
         button.tag = filter.rawValue
-        button.setTitle(title, for: .normal)
         button.titleLabel?.adjustsFontForContentSizeCategory = true
-        button.configuration = .tinted()
         button.configurationUpdateHandler = { button in
             var configuration: UIButton.Configuration = button.isSelected ? .prominentGlass() : .glass()
             configuration.cornerStyle = .capsule
@@ -199,7 +195,6 @@ final class FactsListViewController: UIViewController {
             guard let filter = FactsListViewModel.SearchFilter(rawValue: button.tag) else { continue }
             button.isSelected = viewModel.searchFilters.contains(filter)
             button.accessibilityTraits = button.isSelected ? [.button, .selected] : [.button]
-            button.setNeedsUpdateConfiguration()
         }
     }
 

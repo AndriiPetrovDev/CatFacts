@@ -43,10 +43,9 @@ final class CatFactsUITests: XCTestCase {
         app.buttons["facts.filter.new"].tap()
         search(for: "no matching keyword", in: app)
 
-        let message = app.staticTexts["facts.message"]
+        let message = app.staticTexts["No facts found."]
         XCTAssertTrue(message.waitForExistence(timeout: 5))
-        XCTAssertEqual(message.label, "No facts found.")
-        XCTAssertFalse(app.buttons["facts.retry"].exists)
+        XCTAssertFalse(app.buttons["Try Again"].exists)
 
         let searchField = app.searchFields["facts.search"]
         searchField.tap()
@@ -62,19 +61,17 @@ final class CatFactsUITests: XCTestCase {
 
     func testRetryAfterOfflineErrorLoadsFactsAndOpensDetails() {
         let app = launch(scenario: "offlineThenSuccess")
-        let retryButton = app.buttons["facts.retry"]
+        let retryButton = app.buttons["Try Again"]
+        let message = app.staticTexts["You're offline. Check your internet connection and try again."]
         XCTAssertTrue(retryButton.waitForExistence(timeout: 5))
-        XCTAssertEqual(
-            app.staticTexts["facts.message"].label,
-            "You're offline. Check your internet connection and try again."
-        )
+        XCTAssertTrue(message.exists)
 
         retryButton.tap()
 
         let recoveredFact = fact("old-verified", in: app)
         XCTAssertTrue(recoveredFact.waitForExistence(timeout: 5))
         XCTAssertFalse(retryButton.exists)
-        XCTAssertFalse(app.staticTexts["facts.message"].exists)
+        XCTAssertFalse(message.exists)
         XCTAssertEqual(recoveredFact.value as? String, "Verified")
         recoveredFact.tap()
 

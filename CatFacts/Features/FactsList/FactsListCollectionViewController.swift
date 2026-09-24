@@ -53,45 +53,6 @@ final class FactsListCollectionViewController: UIViewController {
         return collectionView
     }()
 
-    private lazy var activityIndicator: UIActivityIndicatorView = {
-        let indicator = UIActivityIndicatorView(style: .medium)
-        indicator.isAccessibilityElement = false
-        return indicator
-    }()
-
-    private lazy var messageLabel: UILabel = {
-        let label = UILabel()
-        label.accessibilityIdentifier = "facts.message"
-        label.font = .preferredFont(forTextStyle: .body)
-        label.adjustsFontForContentSizeCategory = true
-        label.textColor = .secondaryLabel
-        label.numberOfLines = 0
-        label.textAlignment = .center
-        return label
-    }()
-
-    private lazy var retryButton: UIButton = {
-        let button = UIButton(type: .system)
-        button.accessibilityIdentifier = "facts.retry"
-        button.setTitle(String(localized: "action.retry"), for: .normal)
-        button.accessibilityHint = String(localized: "accessibility.retry")
-        button.titleLabel?.font = .preferredFont(forTextStyle: .body)
-        button.titleLabel?.adjustsFontForContentSizeCategory = true
-        button.addAction(UIAction { [weak self] _ in
-            self?.loadFacts()
-        }, for: .touchUpInside)
-        return button
-    }()
-
-    private lazy var statusStack: UIStackView = {
-        let stack = UIStackView(arrangedSubviews: [activityIndicator, messageLabel, retryButton])
-        stack.axis = .vertical
-        stack.alignment = .center
-        stack.spacing = AppLayout.sectionSpacing
-        stack.isHidden = true
-        return stack
-    }()
-
     init(
         viewModel: FactsListViewModel,
         onScroll: (() -> Void)? = nil,
@@ -119,8 +80,9 @@ final class FactsListCollectionViewController: UIViewController {
         super.viewDidLoad()
         view.backgroundColor = .systemGroupedBackground
         view.addSubview(collectionView)
-        view.addSubview(statusStack)
-        setupConstraints()
+        collectionView.snp.makeConstraints { make in
+            make.edges.equalToSuperview()
+        }
         bindViewModel()
         render(viewModel.state)
         loadFacts()
@@ -129,7 +91,7 @@ final class FactsListCollectionViewController: UIViewController {
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         isScreenVisible = true
-        if !statusStack.isHidden {
+        if contentUnavailableConfiguration != nil {
             updateAccessibilityFocus()
         }
     }
@@ -154,25 +116,6 @@ final class FactsListCollectionViewController: UIViewController {
         }
     }
 
-    private func setupConstraints() {
-        collectionView.snp.makeConstraints { make in
-            make.edges.equalToSuperview()
-        }
-
-        statusStack.snp.makeConstraints { make in
-            make.centerY.equalTo(view.safeAreaLayoutGuide)
-            make.leading.trailing.equalTo(view.safeAreaLayoutGuide).inset(AppLayout.horizontalInset)
-        }
-
-        messageLabel.snp.makeConstraints { make in
-            make.width.equalToSuperview()
-        }
-
-        retryButton.snp.makeConstraints { make in
-            make.height.greaterThanOrEqualTo(44).priority(.high)
-        }
-    }
-
     private func bindViewModel() {
         viewModel.onStateChange = { [weak self] state in
             guard let self else { return }
@@ -193,20 +136,21 @@ final class FactsListCollectionViewController: UIViewController {
     private func render(_ state: FactsListViewModel.State) {
         switch state {
         case .idle:
-            showStatus(isLoading: false, message: nil)
+            showStatus(message: nil)
 
         case .loading:
-            showStatus(isLoading: true, message: String(localized: "facts.loading"))
+            showStatus(message: String(localized: "facts.loading"), isLoading: true)
 
         case .loaded:
+            let items = viewModel.items
             let emptyMessage = viewModel.hasActiveFilters
                 ? String(localized: "search.empty")
                 : String(localized: "facts.empty")
-            showStatus(isLoading: false, message: viewModel.items.isEmpty ? emptyMessage : nil)
-            applySnapshot()
+            showStatus(message: items.isEmpty ? emptyMessage : nil)
+            applySnapshot(items: items)
 
         case .failed(let message):
-            showStatus(isLoading: false, message: message, canRetry: true)
+            showStatus(message: message, canRetry: true)
         }
 
         if state != .loaded {
@@ -214,27 +158,31 @@ final class FactsListCollectionViewController: UIViewController {
         }
     }
 
-    private func showStatus(isLoading: Bool, message: String?, canRetry: Bool = false) {
-        if isLoading {
-            activityIndicator.startAnimating()
-        } else {
-            activityIndicator.stopAnimating()
+    private func showStatus(message: String?, isLoading: Bool = false, canRetry: Bool = false) {
+        collectionView.isHidden = message != nil
+        guard let message else {
+            contentUnavailableConfiguration = nil
+            return
         }
-        activityIndicator.isHidden = !isLoading
-        messageLabel.text = message
-        messageLabel.isHidden = message == nil
-        retryButton.isHidden = !canRetry
-        let statusElements: [UIView] = [messageLabel, retryButton]
-        statusStack.accessibilityElements = statusElements.filter { !$0.isHidden }
-        statusStack.isHidden = !isLoading && message == nil
-        collectionView.isHidden = !statusStack.isHidden
+
+        var configuration = isLoading ? UIContentUnavailableConfiguration.loading() : .empty()
+        configuration.text = message
+        configuration.textProperties.font = .preferredFont(forTextStyle: .body)
+        configuration.textProperties.color = .secondaryLabel
+        if canRetry {
+            configuration.button.title = String(localized: "action.retry")
+            configuration.buttonProperties.primaryAction = UIAction { [weak self] _ in
+                self?.loadFacts()
+            }
+        }
+        contentUnavailableConfiguration = configuration
     }
 
-    private func applySnapshot() {
+    private func applySnapshot(items: [CatFact]) {
         let existingIDs = Set(dataSource.snapshot().itemIdentifiers)
         var snapshot = NSDiffableDataSourceSnapshot<Section, CatFact.ID>()
         snapshot.appendSections([.main])
-        snapshot.appendItems(viewModel.items.map(\.id))
+        snapshot.appendItems(items.map(\.id))
         snapshot.reloadItems(snapshot.itemIdentifiers.filter { existingIDs.contains($0) })
         dataSource.apply(snapshot, animatingDifferences: false) { [weak self] in
             guard let self, self.viewModel.state == .loaded else { return }
@@ -247,14 +195,12 @@ final class FactsListCollectionViewController: UIViewController {
               shouldUpdateAccessibilityFocus?() != false else { return }
         view.layoutIfNeeded()
 
-        let element: UIView?
-        if !statusStack.isHidden {
-            element = messageLabel
-        } else {
-            element = collectionView.cellForItem(at: IndexPath(item: 0, section: 0))
+        if let configuration = contentUnavailableConfiguration as? UIContentUnavailableConfiguration {
+            UIAccessibility.post(notification: .announcement, argument: configuration.text)
+            return
         }
 
-        guard let element else { return }
+        guard let element = collectionView.cellForItem(at: IndexPath(item: 0, section: 0)) else { return }
         UIAccessibility.post(notification: .layoutChanged, argument: element)
     }
 }

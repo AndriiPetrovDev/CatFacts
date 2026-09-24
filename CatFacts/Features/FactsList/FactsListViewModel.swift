@@ -100,16 +100,12 @@ final class FactsListViewModel {
     }
 
     private func message(for error: Error) -> String {
-        guard let error = error as? HTTPClientError else {
-            return String(localized: "error.generic")
-        }
-
-        switch error {
-        case .transport(.notConnectedToInternet):
+        switch error as? HTTPClientError {
+        case .transport(.notConnectedToInternet)?:
             return String(localized: "error.offline")
-        case .transport(.timedOut):
+        case .transport(.timedOut)?:
             return String(localized: "error.timeout")
-        case .httpStatus(let statusCode) where (500 ..< 600).contains(statusCode):
+        case .httpStatus(let statusCode)? where (500 ..< 600).contains(statusCode):
             return String(localized: "error.server")
         default:
             return String(localized: "error.generic")
