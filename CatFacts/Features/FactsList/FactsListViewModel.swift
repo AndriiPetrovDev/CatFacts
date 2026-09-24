@@ -1,4 +1,5 @@
 import Foundation
+import Algorithms
 
 @MainActor
 final class FactsListViewModel {
@@ -52,12 +53,7 @@ final class FactsListViewModel {
             let facts = try await factsService.fetchFacts()
             try Task.checkCancellation()
 
-            guard Set(facts.map(\.id)).count == facts.count else {
-                state = .failed("Couldn't load facts. Please try again.")
-                return
-            }
-
-            self.facts = facts
+            self.facts = facts.uniqued(on: \.id)
             state = .loaded
         } catch is CancellationError {
             state = previousState

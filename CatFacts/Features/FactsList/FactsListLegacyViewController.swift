@@ -345,6 +345,11 @@ extension FactsListLegacyViewController: UISearchBarDelegate {
     }
 
     @available(iOS 17.0, *)
+    #Preview("Duplicate IDs") {
+        makeFactsListLegacyViewControllerPreview(factsService: FactsServiceStub(fetchFactsResponse: .success(CatFactFixtures.listWithDuplicateIDs)))
+    }
+
+    @available(iOS 17.0, *)
     #Preview("Failed") {
         makeFactsListLegacyViewControllerPreview(factsService: FactsServiceStub(fetchFactsResponse: .failure(.httpStatus(503))))
     }

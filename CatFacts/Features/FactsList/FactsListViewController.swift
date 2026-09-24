@@ -337,6 +337,11 @@ extension FactsListViewController: UISearchBarDelegate {
     }
 
     @available(iOS 26.0, *)
+    #Preview("Duplicate IDs") {
+        makeFactsListViewControllerPreview(factsService: FactsServiceStub(fetchFactsResponse: .success(CatFactFixtures.listWithDuplicateIDs)))
+    }
+
+    @available(iOS 26.0, *)
     #Preview("Failed") {
         makeFactsListViewControllerPreview(factsService: FactsServiceStub(fetchFactsResponse: .failure(.httpStatus(503))))
     }

@@ -24,5 +24,15 @@
                 )
             ]
         }
+
+        static var listWithDuplicateIDs: [CatFact] {
+            list + [
+                make(
+                    id: "fixture-1",
+                    text: "Cats use their tails to help maintain their balance.",
+                    isVerified: false
+                )
+            ]
+        }
     }
 #endif

@@ -87,17 +87,25 @@ final class FactsListViewModelTests: XCTestCase {
     #endif
 
     @MainActor
-    func testDuplicateIDsProduceAnErrorBeforeUpdatingCollection() async {
-        let fact = makeFact(id: "duplicate")
-        let service = SequentialFactsServiceStub(responses: [.success([fact, fact])])
+    func testDuplicateIDsKeepFirstOccurrenceAndPreserveOrder() async {
+        let first = makeFact(id: "first")
+        let second = makeFact(id: "second")
+        let duplicate = CatFact(
+            id: first.id,
+            text: "A different fact with the same ID.",
+            createdAt: first.createdAt,
+            isVerified: false
+        )
+        let service = SequentialFactsServiceStub(responses: [.success([first, second, duplicate, second])])
         let viewModel = FactsListViewModel(factsService: service)
+        var states: [FactsListViewModel.State] = []
+        viewModel.onStateChange = { states.append($0) }
 
         await viewModel.loadFacts()
 
-        guard case .failed = viewModel.state else {
-            return XCTFail("Expected an error for duplicate IDs")
-        }
-        XCTAssertTrue(viewModel.items.isEmpty)
+        XCTAssertEqual(states, [.loading, .loaded])
+        XCTAssertEqual(viewModel.items, [first, second])
+        XCTAssertEqual(viewModel.fact(withID: first.id), first)
     }
 
     @MainActor
