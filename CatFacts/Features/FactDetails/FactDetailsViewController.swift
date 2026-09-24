@@ -5,7 +5,6 @@ final class FactDetailsViewController: UIViewController {
     private let viewModel: FactDetailsViewModel
 
     private lazy var scrollView = UIScrollView()
-    private lazy var contentView = UIView()
 
     private lazy var titleLabel: UILabel = {
         let label = UILabel()
@@ -58,21 +57,16 @@ final class FactDetailsViewController: UIViewController {
         view.backgroundColor = .systemBackground
 
         view.addSubview(scrollView)
-        scrollView.addSubview(contentView)
-        contentView.addSubview(contentStack)
+        scrollView.addSubview(contentStack)
 
         scrollView.snp.makeConstraints { make in
             make.edges.equalTo(view.safeAreaLayoutGuide)
         }
 
-        contentView.snp.makeConstraints { make in
-            make.edges.equalTo(scrollView.contentLayoutGuide)
-            make.width.equalTo(scrollView.frameLayoutGuide)
-        }
-
         contentStack.snp.makeConstraints { make in
-            make.leading.trailing.equalToSuperview().inset(AppLayout.horizontalInset)
-            make.top.bottom.equalToSuperview().inset(24)
+            make.leading.trailing.equalTo(scrollView.contentLayoutGuide).inset(AppLayout.horizontalInset)
+            make.top.bottom.equalTo(scrollView.contentLayoutGuide).inset(24)
+            make.width.equalTo(scrollView.frameLayoutGuide).offset(-2 * AppLayout.horizontalInset)
         }
     }
 

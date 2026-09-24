@@ -42,6 +42,7 @@ final class FactsListViewModel {
     private let factsService: any FactsServiceProtocol
     private let onSelectFact: ((CatFact) -> Void)?
     private var facts: [CatFact] = []
+    private var factsByID: [CatFact.ID: CatFact] = [:]
 
     init(
         factsService: any FactsServiceProtocol,
@@ -64,6 +65,7 @@ final class FactsListViewModel {
             try Task.checkCancellation()
 
             self.facts = facts.uniqued(on: \.id)
+            factsByID = Dictionary(uniqueKeysWithValues: self.facts.map { ($0.id, $0) })
             state = .loaded
         } catch is CancellationError {
             state = previousState
@@ -91,7 +93,7 @@ final class FactsListViewModel {
     }
 
     func fact(withID id: CatFact.ID) -> CatFact? {
-        facts.first { $0.id == id }
+        factsByID[id]
     }
 
     func selectFact(withID id: CatFact.ID) {

@@ -148,6 +148,34 @@ final class FactsListViewModelTests: XCTestCase {
         XCTAssertEqual(selections, [second])
     }
 
+    func testReloadUpdatesFactsByIDAndRemovesMissingFacts() async {
+        let original = makeFact(id: "retained", text: "Original fact.")
+        let updated = makeFact(id: original.id, text: "Updated fact.")
+        let removed = makeFact(id: "removed")
+        let added = makeFact(id: "added")
+        let service = SequentialFactsServiceStub(responses: [
+            .success([original, removed]),
+            .success([updated, added]),
+            .success([])
+        ])
+        let viewModel = FactsListViewModel(factsService: service)
+
+        await viewModel.loadFacts()
+        XCTAssertEqual(viewModel.fact(withID: original.id), original)
+        XCTAssertEqual(viewModel.fact(withID: removed.id), removed)
+
+        await viewModel.loadFacts()
+        XCTAssertEqual(viewModel.items, [updated, added])
+        XCTAssertEqual(viewModel.fact(withID: updated.id), updated)
+        XCTAssertEqual(viewModel.fact(withID: added.id), added)
+        XCTAssertNil(viewModel.fact(withID: removed.id))
+
+        await viewModel.loadFacts()
+        XCTAssertTrue(viewModel.items.isEmpty)
+        XCTAssertNil(viewModel.fact(withID: updated.id))
+        XCTAssertNil(viewModel.fact(withID: added.id))
+    }
+
     func testSearchMatchesSubstringsIgnoringCaseAndTrimsWhitespace() async {
         let facts = [
             makeFact(id: "first", text: "Cats purr when content."),
