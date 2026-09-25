@@ -38,7 +38,7 @@ Xcode Previews cover the list and details, both UI variants, loading, empty and 
   <img src="docs/screenshots/Loaded · Light · Default.png" width="24%" alt="Fact list in light mode">
   <img src="docs/screenshots/Error · Server.png" width="24%" alt="Server error state">
   <img src="docs/screenshots/Languages · List.png" width="24%" alt="Localized fact list">
-  <img src="docs/screenshots/Languages · Offline.png" width="24%" alt="Localized offline error state">
+  <img src="docs/screenshots/Search.png" width="24%" alt="Search results with highlighted matches and the Verified filter enabled">
 </p>
 
 <p>
@@ -49,7 +49,6 @@ Xcode Previews cover the list and details, both UI variants, loading, empty and 
 </p>
 
 <p>
-  <img src="docs/screenshots/Search.png" width="24%" alt="Search results with highlighted matches and the Verified filter enabled">
   <img src="docs/screenshots/iOS18-small.png" width="24%" alt="Fact list on iOS 18 with search and filters visible">
   <img src="docs/screenshots/iOS18-shide on scroll.png" width="24%" alt="Fact list on iOS 18 with search and filters hidden after scrolling">
   <img src="docs/screenshots/iOS18-large.png" width="24%" alt="Fact details on iOS 18 with large text and a Verified indicator">
